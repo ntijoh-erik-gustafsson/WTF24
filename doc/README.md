@@ -3,7 +3,7 @@ MusicManiac
 
 ## Beskrivning
 
-MusicManiac är en applikation där man kan lyssna, ladda upp, betygsätta, och kommentera på låtar, album och EP. Det ska finnas möjlighet att logga in och skapa ett konto. Vem som helst ska kunna ladda upp en låt eller ett album, som då måste godkännas av en administratör. Vem som helst ska också kunna kommentera och betygsätta en låt eller ett album. Man ska kunna söka på låtar och sedan spela upp dom.🏴‍☠️
+Music Maniac är en applikation där man kan lyssna, ladda upp och skriva recensioner på låtar, album och EP. Det ska finnas möjlighet att logga in och skapa ett konto. En registrerad användare ska kunna ladda upp en låt eller ett album, som då måste godkännas av en administratör. Man ska kunna söka på låtar och sedan spela upp dem.🏴‍☠️
 
 ## Användare och roller
 
