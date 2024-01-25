@@ -1,25 +1,18 @@
 # Projektets Namn
+MusicManiac
 
 ## Beskrivning
 
-Här beskriver du applikationens funktionalitet.
-
-### Exempel (ta bort)
-
-Book-O-Matic är en applikation där användare kan skapa virtuella bokhyllor. De kan mata in vilka böcker de har, och information om dessa. Man kan betygssätta böcker och skriva kommentarer. Om en bok är inlagd av en annan användare kan andra användare lägga till den i "sin" bokhylla, och skriva egna kommentarer och recensioner och sätta egna betyg. Man kan söka efter titlar och se kommentarer, recensioner och betyg
+MusicManiac är en applikation där man kan lyssna, ladda upp, betygsätta, och kommentera på låtar, album och EP. Det ska finnas möjlighet att logga in och skapa ett konto. Vem som helst ska kunna ladda upp en låt eller ett album, som då måste godkännas av en administratör. Vem som helst ska också kunna kommentera och betygsätta en låt eller ett album. Man ska kunna söka på låtar och sedan spela upp dom.🏴‍☠️
 
 ## Användare och roller
 
-Här skriver du ner vilka typer av användare (som i inloggade användare) det finns, och vad de har för rättigheter, det vill säga, vad de kan göra (tänk admin, standard användare, etc).
-
-### Exempel (ta bort)
-
-Gästanvändare - oinloggad
-. Kan söka efter titlar och se genomsnittligt betyg. Kan inte se eller skriva kommentarer eller sätta egna betyg.
-
-Standardanvändare - inloggad. Kan allt gästanvändare kan, men kan även lägga in nya böcker och skriva kommentarer etc. Kan ta bort sitt eget konto och information kopplat till det.
-
-Adminanvändare - kan ta bort/editera böcker, kommentarer och användare.
+Guest - oinloggad
+. Kan söka efter titlar och se genomsnittligt betyg. Kan inte skriva kommentarer eller sätta egna betyg.
+User - inloggad
+. Kan allt en gästanvändare göra, samt skicka in ansökan om att ladda upp en ny låt, kan betygsätta befintliga låtar, kan kommentera på låtar. 
+Admin 
+. Kan allt som en användare göra, kan ladda upp och ta bort låtar, godkänna förslag av uppladning av låtar.
 
 ## ER-Diagram
 

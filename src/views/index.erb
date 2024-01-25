@@ -1,0 +1,40 @@
+<h1>HI</h1>
+
+<header>
+    <a href="/add">Add a new release<a> 
+    <a href="/login">Login<a>
+
+</header>
+
+
+
+<% for release in @releases %>
+    
+    <div>
+        <p><%= release[2]%> - <%= release[1]%><p>
+
+    <form action='/release/remove/<%= release[0] %>' method='post'> 
+        <button type="submit">DELETE</button>
+    </form>
+
+    <form action='/edit/<%= release[0] %>' method='get'> 
+        <button type="submit">EDIT</button>
+    </form>
+
+    <details>
+        <summary>More info</summary>
+        Name: <%= release[1] %> <br>
+        Artist: <%= release[2] %> <br>
+        Length: <%= release[3] %> <br>
+        Rating: <%= release[4] %> <br>
+        Type: <%= release[5] %> <br>
+        Genre: <%= release[6] %> <br>
+        Release date: <%= release[7] %> 
+        
+    </details>
+
+
+    </div>
+
+<% end %>
+

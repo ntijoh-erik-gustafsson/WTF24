@@ -1,0 +1,28 @@
+  <form action="/release/add" method="post">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br>
+
+        <label for="artist">Artist:</label>
+        <input type="text" id="artist" name="artist" required><br>
+
+        <label for="length">Length:</label>
+        <input type="text" id="length" name="length" required><br>
+
+        <label for="rating">Rating:</label>
+        <input type="number" id="rating" name="rating" min="0" max="10" step="0.1" required><br>
+
+        <label for="type">Type:</label>
+        <select id="type" name="type" required>
+            <option value="album">Album</option>
+            <option value="single">Single</option>
+            <option value="ep">EP</option>
+        </select><br>
+
+        <label for="genre">Genre:</label>
+        <input type="text" id="genre" name="genre" required><br>
+
+        <label for="release_date">Release Date:</label>
+        <input type="date" id="release_date" name="release_date" required><br>
+
+        <input type="submit" value="Add Release">
+    </form>
