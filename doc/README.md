@@ -16,7 +16,7 @@ Admin
 
 ## ER-Diagram
 
-![Er-Diagram](./er_diagram.png?raw=true "ER-diagram")
+![Er-Diagram](./er_diagram.jpg?raw=true "ER-diagram")
 
 ## Gränssnittsskisser
 
@@ -24,6 +24,3 @@ Admin
 
 ![Er-Diagram](./ui_login.png?raw=true "ER-diagram")
 
-**Visa bok**
-
-![Er-Diagram](./ui_show_book.png?raw=true "ER-diagram")
