@@ -1,4 +1,4 @@
-  <form action="/release/add" method="post">
+<form action="/release/add" method="post" enctype="multipart/form-data">
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" required><br>
 
@@ -7,9 +7,6 @@
 
         <label for="length">Length:</label>
         <input type="text" id="length" name="length" required><br>
-
-        <label for="rating">Rating:</label>
-        <input type="number" id="rating" name="rating" min="0" max="10" step="0.1" required><br>
 
         <label for="type">Type:</label>
         <select id="type" name="type" required>
@@ -23,6 +20,9 @@
 
         <label for="release_date">Release Date:</label>
         <input type="date" id="release_date" name="release_date" required><br>
+
+        <label for="img">Upload artwork: </label>
+        <input type="file" id="release_artwork" name="release_artwork" accept="image/*"><br>
 
         <input type="submit" value="Add Release">
     </form>

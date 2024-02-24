@@ -16,32 +16,44 @@ class App < Sinatra::Base
        # puts("test")
     end
 
+    # --- ADD A RELEASE ---
     get '/add' do
         erb :add
     end
 
     post '/release/add' do
+        id = params["id"]
         name = params["name"]
         artist = params["artist"]
         length = params["length"]
-        rating = params["rating"]
         type = params["type"]
-        rating = params["rating"]
         genre = params["genre"]
         release_date = params["release_date"]
+        artwork_file = params["release_artwork"]
+        
+        # Save the uploaded file to the server
+        File.open('public/artwork/' + artwork_file[:filename], "w") do |f|
+            f.write(artwork_file[:tempfile].read)
+        end
 
-        query = 'INSERT INTO releases (name, artist, length, rating, type, genre, release_date) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id'
-        result = db.execute(query, name, artist, length, rating, type, genre, release_date).first 
+        puts(artwork_file[:filename])
+
+        query = 'INSERT INTO releases (name, artist, length, type, genre, release_date, image_path) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id'
+        result = db.execute(query, name, artist, length, type, genre, release_date, "/artwork/" + artwork_file[:filename]).first 
 
         redirect "/"
     end
+    # ------
 
 
+    # --- REMOVE A RELEASE ---
     post '/release/remove/:id' do |id| 
         db.execute('DELETE FROM releases WHERE id = ?', id)
         redirect "/"
     end
+    # ------
 
+    # --- EDIT A RELEASE ---
     get '/edit/:id' do |id|
         @release_info = db.execute("SELECT * FROM releases WHERE id = ?", id)
         @release_info = @release_info[0]
@@ -52,16 +64,57 @@ class App < Sinatra::Base
         name = params["name"]
         artist = params["artist"]
         length = params["length"]
-        rating = params["rating"]
         type = params["type"]
         genre = params["genre"]
         release_date = params["release_date"]
+        artwork_file = params["release_artwork"]
 
-        query = "UPDATE releases SET name = ?, artist = ?, length = ?, rating = ?, type = ?, genre = ?, release_date = ? WHERE id = ?"
-        result = db.execute(query, name, artist, length, rating, type, genre, release_date, id)
-        
+        # First check if artwork file is empty since its not neccesarry for the user to update, if it is --> then just update the rest of the information
+        if artwork_file == nil
+            query = "UPDATE releases SET name = ?, artist = ?, length = ?, rating = ?, type = ?, genre = ?, release_date = ? WHERE id = ?"
+            result = db.execute(query, name, artist, length, rating, type, genre, release_date, id)
+
+        else 
+
+            # [to-do] Remove the old image
+
+            # Save the uploaded file to the server
+            File.open('public/artwork/' + artwork_file[:filename], "w") do |f|
+                f.write(artwork_file[:tempfile].read)
+            end
+
+            # Update the database        
+            query = "UPDATE releases SET name = ?, artist = ?, length = ?, rating = ?, type = ?, genre = ?, release_date = ?, image_path = ? WHERE id = ?"
+            result = db.execute(query, name, artist, length, rating, type, genre, release_date, "/artwork/" + artwork_file[:filename], id)
+
+         end
+            
         redirect "/"
     end
+    # ------
+
+    # --- VIEW A RELEASE ---
+    get '/view/:id' do |id|
+        @release_info = db.execute("SELECT * FROM releases WHERE id = ?", id)
+        @release_info = @release_info[0]
+
+        @review_info = db.execute("SELECT * FROM reviews WHERE release_id = ?", id)
+
+        erb :view
+    end
+
+    # --- REVIEW A RELEASE ---
+    post '/release/review/:id' do |release_id| 
+        review_rating = params["rating"]
+        review_text = params["review_text"]
+        username = "bob"
+        
+        query = 'INSERT INTO reviews (release_id, username, review_rating, review_text) VALUES (?, ?, ?, ?) RETURNING id'
+        result = db.execute(query, release_id, username, review_rating, review_text)
+    
+        redirect "/"
+    end
+
 
     # Credentials handling
     get '/login' do 
