@@ -1,9 +1,13 @@
 <form action="/release/add" method="post" enctype="multipart/form-data">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br>
+        <label for="name">Title:</label>
+        <input type="text" id="title" name="title" required><br>
 
         <label for="artist">Artist:</label>
-        <input type="text" id="artist" name="artist" required><br>
+        <select id="artist" name="artist_id" required>
+            <% @artists.each do |artist| %>
+                <option value="<%= artist['id'] %>"><%= artist['name'] %></option>
+            <% end %>
+        </select><br>
 
         <label for="length">Length:</label>
         <input type="text" id="length" name="length" required><br>

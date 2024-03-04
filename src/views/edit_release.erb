@@ -1,9 +1,13 @@
   <form action="/release/edit/<%= @release_info["id"] %>" method="post" enctype="multipart/form-data">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" value="<%= @release_info["name"] %>" required><br>
+        <label for="name">Title:</label>
+        <input type="text" id="title" name="title" value="<%= @release_info["title"] %>" required><br>
 
         <label for="artist">Artist:</label>
-        <input type="text" id="artist" name="artist" value="<%= @release_info["artist"]  %>" required><br>
+        <select id="artist" name="artist_id" required>
+            <% @artists.each do |artist| %>
+                <option value="<%= artist['id'] %>" <%= 'selected' if artist['id'] == @release_info['artist_id'] %>><%= artist['name'] %></option>
+            <% end %>
+        </select><br>
 
         <label for="length">Length:</label>
         <input type="text" id="length" name="length" value="<%=  @release_info["length"]  %>" required><br>

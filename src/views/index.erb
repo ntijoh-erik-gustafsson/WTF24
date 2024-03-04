@@ -1,20 +1,35 @@
 
+<% for artist in @artists %>
+    <div>
+        <p>Artist: <%= artist["name"] %></p>
 
+
+        <form action='/artist/remove/<%= artist["id"] %>' method='post'> 
+            <button type="submit">DELETE</button>
+        </form>
+
+        <form action='/artist/edit/<%= artist["id"] %>' method='get'> 
+        <button type="submit">EDIT</button>
+
+    </form>
+
+    </div>
+<% end %>
 
 <% for release in @releases %>
     
     <div>
-        <p><%= release[2]%> - <%= release[1]%><p>
+        <p><%= get_artist_name_from_id(release["artist_id"])%> - <%= release["title"]%><p>
 
-    <form action='/release/remove/<%= release[0] %>' method='post'> 
+    <form action='/release/remove/<%= release["id"] %>' method='post'> 
         <button type="submit">DELETE</button>
     </form>
 
-    <form action='/edit/<%= release[0] %>' method='get'> 
+    <form action='/release/edit/<%= release["id"] %>' method='get'> 
         <button type="submit">EDIT</button>
     </form>
 
-    <form action='/view/<%= release[0] %>' method='get'> 
+    <form action='/view/<%= release["id"] %>' method='get'> 
         <button type="submit">VIEW</button>
     </form>
 
@@ -35,4 +50,6 @@
     </div>
 
 <% end %>
+
+
 

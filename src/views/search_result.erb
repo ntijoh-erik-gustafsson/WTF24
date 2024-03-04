@@ -1,0 +1,41 @@
+<h2>Search Results for "<%= @query %>"</h2>
+
+<% if @release_results.empty? && @artist_results.empty? %>
+    <p>No results found for "<%= @query %>". Please try a different search query.</p>
+<% end %>
+
+<% if !@artist_results.empty? %>
+    <h3>Artists:</h3>
+    <ul>
+        <% @artist_results.each do |artist| %>
+            <div>
+                <p>Artist: <%= artist['name'] %></p>
+                <!-- Add additional artist information here -->
+            </div>
+        <% end %>
+    </ul>
+<% end %>
+
+<% if !@release_results.empty? %>
+    <h3>Releases:</h3>
+    <ul>
+        <% @release_results.each do |release| %>
+            <div>
+                <p><%= release['title'] %> - <%= release['artist'] %></p>
+                <form action="/view/<%= release['id'] %>" method="get"> 
+                    <button type="submit">VIEW</button>
+                </form>
+                <details>
+                    <summary>More info</summary>
+                    <p>Name: <%= release['title'] %></p>
+                    <p>Artist: <%= release['artist'] %></p>
+                    <p>Length: <%= release['length'] %></p>
+                    <p>Rating: <%= release['rating'] %></p>
+                    <p>Type: <%= release['type'] %></p>
+                    <p>Genre: <%= release['genre'] %></p>
+                    <p>Release date: <%= release['release_date'] %></p>
+                </details>
+            </div>
+        <% end %>
+    </ul>
+<% end %>

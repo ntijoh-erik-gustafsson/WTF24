@@ -10,8 +10,14 @@
 
 
     <header>
-        <a href="/add">Add a new release<a> 
+        <a href="/release/add">Add a new release<a> 
+        <a href="/artist/add">Add a new artist<a> 
         <a href="/login">Login<a>
+            
+        <form action="/release/search/" method="GET">
+            <input type="text" name="query" placeholder="">
+            <button type="submit">Search</button>
+        </form>
 
     </header>
 
