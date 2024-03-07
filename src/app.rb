@@ -32,7 +32,7 @@ class App < Sinatra::Base
     get '/release/add' do
         @artists = db.execute("SELECT * FROM artists")
 
-        erb :add_release
+        erb :release_add
     end
 
     post '/release/add' do
@@ -45,6 +45,9 @@ class App < Sinatra::Base
         release_date = params["release_date"]
         artwork_file = params["release_artwork"]
 
+        puts(artist_id.to_s)
+        puts("----")
+
         # Check if there is a file uploaded
         if !(artwork_file == nil)
             # Save the uploaded file to the server
@@ -52,8 +55,10 @@ class App < Sinatra::Base
                 f.write(artwork_file[:tempfile].read)
             end
             image_path = "/artwork/" + artwork_file[:filename]
+            puts(image_path)
         else
             image_path = nil
+            puts("No blody image path")
         end
 
 
@@ -84,7 +89,7 @@ class App < Sinatra::Base
 
         @artists = db.execute("SELECT * FROM artists")
 
-        erb :edit_release
+        erb :release_edit
     end
 
     post '/release/edit/:id' do |id|
@@ -120,7 +125,7 @@ class App < Sinatra::Base
     end
     # ------
     # --- VIEW A RELEASE ---
-    get '/view/:id' do |id|
+    get '/release/view/:id' do |id|
         @release_info = db.execute("SELECT * FROM releases WHERE id = ?", id)
         @release_info = @release_info[0]
 
@@ -138,7 +143,7 @@ class App < Sinatra::Base
     
         @total_rating = count == 0 ? "None" : (total_rating / count).round(2)    
 
-        erb :view
+        erb :release_view
     end
 
     # --- REVIEW A RELEASE ---
@@ -156,7 +161,7 @@ class App < Sinatra::Base
     # -- ARTIST --
     # --- ADD AN ARTIST ---
     get '/artist/add' do
-        erb :add_artist
+        erb :artist_add
     end
 
     post '/artist/add' do
@@ -203,7 +208,7 @@ class App < Sinatra::Base
      get '/artist/edit/:id' do |id|
         @artist_info = db.execute("SELECT * FROM artists WHERE id = ?", id)
         @artist_info = @artist_info[0]
-        erb :edit_artist
+        erb :artist_edit
     end
 
     post '/artist/edit/:id' do |id|
@@ -239,6 +244,13 @@ class App < Sinatra::Base
         redirect "/"
     end
     # ------
+    # --- VIEW AN ARTISTS ---
+    get '/artist/view/:id' do |id|
+        @artist_info = db.execute("SELECT * FROM artists WHERE id = ?", id)
+        @artist_info = @artist_info[0]
+
+        erb :artist_view
+    end
    
 
     # --- SEARCH FOR A RELEASE OR ARTIST --- (As of right now one can only search for releases, this may be uodated in the future so also artists can be searched)
@@ -250,7 +262,6 @@ class App < Sinatra::Base
         @release_results = db.execute("SELECT * FROM releases WHERE title LIKE ?", "%#{@query}%")
         @artist_results = db.execute("SELECT * FROM artists WHERE name LIKE ?", "%#{@query}%")
 
-        # Render the search results template
         erb :search_result
 
 
@@ -262,32 +273,33 @@ class App < Sinatra::Base
         erb :login
     end
 
-
-    post '/login/validate' do 
+    post '/login' do 
         # Retrieve the username and password from the form
         username = params["username"]
         password = params["password"]
-
-        # Retrieve the password hash for that username from the database
-        correct_password_hash = db.execute("SELECT password_hash FROM credentials WHERE username = ?", username).first
-
-        # Hash the retrieved form password
-        password_hash = BCrypt::Password.create(password)
-
-        puts(correct_password_hash)
-        puts(password_hash)
-
-
-        # Compare the hashes
-        if correct_password_hash && BCrypt::Password.new(correct_password_hash["password_hash"]) == password
-            puts("correct password")
-            erb :login
-
+    
+        # Retrieve the user info for the username from the database
+        user = db.execute('SELECT * FROM users WHERE username = ?', username).first
+    
+        # Ensure the user exists
+        if user.nil?
+            puts("User not found")
+            redirect "/"
+        end
+    
+        # Retrieve the hashed password from the database
+        stored_password_hash = user['password']
+    
+        # Compare the entered password with the hashed password from the database
+        if BCrypt::Password.new(stored_password_hash) == password
+            session[:user_id] = user['id'] 
+            puts("Correct password")
         else 
-            puts("you put in incorrect password")
+            puts("Incorrect password")
             redirect "/"
         end
     end
+    
 
     # Credentials handling
     get '/register' do 
@@ -303,10 +315,12 @@ class App < Sinatra::Base
         password_hash = BCrypt::Password.create(password)
 
         # Set the status
-        status = "admin"
+        role = "admin"
 
-        query = 'INSERT INTO credentials (status, username, password_hash) VALUES (?, ?, ?) RETURNING id'
-        result = db.execute(query, status, username, password_hash).first
+        query = 'INSERT INTO users (role, username, password) VALUES (?, ?, ?) RETURNING id'
+        result = db.execute(query, role, username, password_hash).first
+
+        redirect "/login"
         
 
         

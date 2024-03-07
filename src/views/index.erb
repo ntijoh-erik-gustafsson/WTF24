@@ -9,9 +9,13 @@
         </form>
 
         <form action='/artist/edit/<%= artist["id"] %>' method='get'> 
-        <button type="submit">EDIT</button>
+            <button type="submit">EDIT</button>
+        </form>
 
-    </form>
+        <form action='/artist/view/<%= artist["id"] %>' method='get'> 
+            <button type="submit">VIEW</button>
+        </form>
+
 
     </div>
 <% end %>
@@ -29,7 +33,7 @@
         <button type="submit">EDIT</button>
     </form>
 
-    <form action='/view/<%= release["id"] %>' method='get'> 
+    <form action='/release/view/<%= release["id"] %>' method='get'> 
         <button type="submit">VIEW</button>
     </form>
 

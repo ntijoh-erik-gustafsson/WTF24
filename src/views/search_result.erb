@@ -10,7 +10,9 @@
         <% @artist_results.each do |artist| %>
             <div>
                 <p>Artist: <%= artist['name'] %></p>
-                <!-- Add additional artist information here -->
+                <form action="/artist/view/<%= artist['id'] %>" method="get"> 
+                    <button type="submit">VIEW</button>
+                </form>            
             </div>
         <% end %>
     </ul>
@@ -22,7 +24,7 @@
         <% @release_results.each do |release| %>
             <div>
                 <p><%= release['title'] %> - <%= release['artist'] %></p>
-                <form action="/view/<%= release['id'] %>" method="get"> 
+                <form action="/release/view/<%= release['id'] %>" method="get"> 
                     <button type="submit">VIEW</button>
                 </form>
                 <details>
