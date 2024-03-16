@@ -150,12 +150,11 @@ class App < Sinatra::Base
     post '/release/review/:id' do |release_id| 
         review_rating = params["rating"]
         review_text = params["review_text"]
-        username = "bob"
         
         query = 'INSERT INTO reviews (release_id, username, review_rating, review_text) VALUES (?, ?, ?, ?) RETURNING id'
-        result = db.execute(query, release_id, username, review_rating, review_text)
+        result = db.execute(query, release_id, session[:username], review_rating, review_text)
     
-        redirect "/view/#{release_id}"
+        redirect "/release/view/#{release_id}"
     end
 
     # -- ARTIST --
@@ -332,7 +331,7 @@ class App < Sinatra::Base
         password_hash = BCrypt::Password.create(password)
 
         # Set the status
-        role = "admin"
+        role = "user"
 
         # Try to insert into the database
         begin

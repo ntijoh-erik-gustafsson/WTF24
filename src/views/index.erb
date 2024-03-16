@@ -4,13 +4,16 @@
         <p>Artist: <%= artist["name"] %></p>
 
 
-        <form action='/artist/remove/<%= artist["id"] %>' method='post'> 
-            <button type="submit">DELETE</button>
-        </form>
+        <% if session[:role] == 'admin' %>
+            <form action='/artist/remove/<%= artist["id"] %>' method='post'> 
+                <button type="submit">DELETE</button>
+            </form>
 
-        <form action='/artist/edit/<%= artist["id"] %>' method='get'> 
-            <button type="submit">EDIT</button>
-        </form>
+            <form action='/artist/edit/<%= artist["id"] %>' method='get'> 
+                <button type="submit">EDIT</button>
+            </form>
+
+        <% end %>
 
         <form action='/artist/view/<%= artist["id"] %>' method='get'> 
             <button type="submit">VIEW</button>
@@ -25,13 +28,16 @@
     <div>
         <p><%= get_artist_name_from_id(release["artist_id"])%> - <%= release["title"]%><p>
 
-    <form action='/release/remove/<%= release["id"] %>' method='post'> 
-        <button type="submit">DELETE</button>
-    </form>
 
-    <form action='/release/edit/<%= release["id"] %>' method='get'> 
-        <button type="submit">EDIT</button>
-    </form>
+        <% if session[:role] == 'admin' %>
+            <form action='/release/remove/<%= release["id"] %>' method='post'> 
+                <button type="submit">DELETE</button>
+            </form>
+
+            <form action='/release/edit/<%= release["id"] %>' method='get'> 
+                <button type="submit">EDIT</button>
+            </form>
+        <% end %>
 
     <form action='/release/view/<%= release["id"] %>' method='get'> 
         <button type="submit">VIEW</button>

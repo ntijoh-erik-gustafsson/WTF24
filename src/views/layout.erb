@@ -8,6 +8,9 @@
 <body>
     <a href="/"><h1>MusicManiac</h1></a>
 
+    <% if session[:username] %>
+        <p>Logged in as <%= session[:username] %></p>
+    <% end %>
 
     <header>
         <a href="/release/add">Add a new release<a> 
