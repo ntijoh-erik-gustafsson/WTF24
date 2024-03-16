@@ -180,10 +180,10 @@ class App < Sinatra::Base
             end
             image_path = "/artwork/" + logo_file[:filename]
          else
-        image_path = nil
-    end
+            image_path = nil
+        end
 
-        query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?) RETURNING id'
+        query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?)'
         result = db.execute(query, name, bio, country, city, image_path)
 
         redirect "/"
@@ -203,7 +203,6 @@ class App < Sinatra::Base
         redirect "/"
     end
         
-
      # --- EDIT AN ARTIST ---
      get '/artist/edit/:id' do |id|
         @artist_info = db.execute("SELECT * FROM artists WHERE id = ?", id)
@@ -252,7 +251,6 @@ class App < Sinatra::Base
         erb :artist_view
     end
    
-
     # --- SEARCH FOR A RELEASE OR ARTIST --- (As of right now one can only search for releases, this may be uodated in the future so also artists can be searched)
     get "/release/search/" do
         # Get the search query from params
@@ -267,10 +265,11 @@ class App < Sinatra::Base
 
     end
 
-
-    # Credentials handling
+    # Login handling
     get '/login' do 
-        erb :login
+        error_message = session.delete(:error_message)
+
+        erb :login, locals: { error_message: error_message }
     end
 
     post '/login' do 
@@ -283,8 +282,8 @@ class App < Sinatra::Base
     
         # Ensure the user exists
         if user.nil?
-            puts("User not found")
-            redirect "/"
+            session[:error_message] = "User is not found"
+            redirect "/login"
         end
     
         # Retrieve the hashed password from the database
@@ -293,23 +292,41 @@ class App < Sinatra::Base
         # Compare the entered password with the hashed password from the database
         if BCrypt::Password.new(stored_password_hash) == password
             session[:user_id] = user['id'] 
-            puts("Correct password")
-        else 
-            puts("Incorrect password")
+            session[:username] = username
+            session[:role] = user['role']
+
+            puts(session[:user_id])
+            puts(session[:username])
+            puts(session[:role])
+
             redirect "/"
+
+        else 
+            session[:error_message] = "Password is incorrect"
+            redirect '/login'        
         end
+
+        
     end
     
-
-    # Credentials handling
+    # Register handling
     get '/register' do 
-        erb :register
+        error_message = session.delete(:error_message)
+
+        erb :register, locals: { error_message: error_message }
     end    
 
      post '/register' do 
         # Retrieve the username and password from the form
         username = params["username"]
         password = params["password"]
+        password_confirm = params["confirm_password"]
+
+        # Check if passwords match
+        if password != password_confirm
+            session[:error_message] = "Passwords do not match"
+            redirect '/register'
+        end
 
         # Hash the retrieved form password
         password_hash = BCrypt::Password.create(password)
@@ -317,12 +334,25 @@ class App < Sinatra::Base
         # Set the status
         role = "admin"
 
-        query = 'INSERT INTO users (role, username, password) VALUES (?, ?, ?) RETURNING id'
-        result = db.execute(query, role, username, password_hash).first
+        # Try to insert into the database
+        begin
+            query = 'INSERT INTO users (role, username, password) VALUES (?, ?, ?)'
+            result = db.execute(query, role, username, password_hash).first
 
-        redirect "/login"
-        
+        rescue SQLite3::ConstraintException => e
+            session[:error_message] = "Username is already taken"
+            redirect '/register'
 
+        rescue => e
+            session[:error_message] = "An error occurred while processing your request"
+            redirect '/register'
+        end
+    
+        session[:user_id] = db.last_insert_row_id 
+        session[:username] = username
+        session[:role] = role
+
+        redirect "/"
         
     end
 
