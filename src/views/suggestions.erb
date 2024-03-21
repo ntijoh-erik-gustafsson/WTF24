@@ -1,0 +1,42 @@
+
+<% if (session[:role] == "admin")%>
+    <p>User sent in suggestions:</p>
+    <p>Release suggestions:</p>
+
+    <% for release in @release_suggestions %>
+        
+        <div>
+            <p><%= get_artist_name_from_id(release["artist_id"])%> - <%= release["title"]%><p>
+
+
+                <form action='/release/suggestion/approve/<%= release["id"] %>' method='post'> 
+                    <button type="submit">APROVE</button>
+                </form>
+
+                <form action='/release/suggestion/reject/<%= release["id"] %>' method='post'> 
+                    <button type="submit">REJECT</button>
+                </form>
+        </div>
+
+    <% end %>
+    <p>---</p>
+    
+    <p>Artist suggestions:</p>
+
+    <% for artist in @artist_suggestions %>
+        
+        <div>
+            <p><%= artist['name'] %><p>
+
+                <form action='/artist/suggestion/approve/<%= artist["id"] %>' method='post'> 
+                    <button type="submit">APROVE</button>
+                </form>
+
+                <form action='/artist/suggestion/reject/<%= artist["id"] %>' method='post'> 
+                    <button type="submit">REJECT</button>
+                </form>
+        </div>
+
+    <% end %>
+
+<% end %>

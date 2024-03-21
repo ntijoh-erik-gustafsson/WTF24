@@ -10,13 +10,24 @@
 
     <% if session[:username] %>
         <p>Logged in as <%= session[:username] %></p>
+        <p>Role: <%= session[:role] %></p>
+
     <% end %>
 
     <header>
-        <a href="/release/add">Add a new release<a> 
-        <a href="/artist/add">Add a new artist<a> 
-        <a href="/login">Login<a>
-        <a href="/register">Register<a>
+        <% if session[:username]%>
+            <a href="/release/add">Add a new release<a> 
+            <a href="/artist/add">Add a new artist<a> 
+            <a href="/logout">Logout<a>
+        <% else %>
+            <a href="/login">Login<a>
+            <a href="/register">Register<a>
+        <% end %>
+
+        <% if session[:role] == "admin" %>
+            <a href="/suggestions">Suggestions<a>
+        <% end %>
+
 
         <form action="/release/search/" method="GET">
             <input type="text" name="query" placeholder="">

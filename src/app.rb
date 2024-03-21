@@ -9,8 +9,13 @@ class App < Sinatra::Base
         return @db
     end
 
+    # before hand in fucking use this funktion!!!!!!!
+    def h(text)
+        Rack::Utils.escape_html(text)
+    end
+    
+
     get '/' do
-        session[:user_id] = 1 
         @releases = db.execute("SELECT * FROM releases")
         @artists = db.execute("SELECT * FROM artists")
 
@@ -30,9 +35,13 @@ class App < Sinatra::Base
     # -- RELEASES --
     # --- ADD A RELEASE ---
     get '/release/add' do
-        @artists = db.execute("SELECT * FROM artists")
-
-        erb :release_add
+        # First check if the user is logged in
+        if session[:username]
+            @artists = db.execute("SELECT * FROM artists")
+            erb :release_add
+        else
+            redirect '/'
+        end
     end
 
     post '/release/add' do
@@ -58,15 +67,23 @@ class App < Sinatra::Base
             puts(image_path)
         else
             image_path = nil
-            puts("No blody image path")
+            puts("No bloody image path")
         end
 
 
+        # Check if the user is an admin or an user
+        if (session[:role] == "admin")
+            # Insert the release data into the release database
+            query = 'INSERT INTO releases (title, artist_id, length, type, genre, release_date, image_path) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id'
+            result = db.execute(query, title, artist_id, length, type, genre, release_date, image_path).first 
+            redirect "/release/view/#{db.last_insert_row_id}"
 
-        # Insert the release data into the database
-        query = 'INSERT INTO releases (title, artist_id, length, type, genre, release_date, image_path) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id'
-        result = db.execute(query, title, artist_id, length, type, genre, release_date, image_path).first 
-        redirect "/"
+        elsif (session[:role] == "user")
+            # Insert the release data into the suggestion database
+            query = 'INSERT INTO release_suggestions (title, artist_id, length, type, genre, release_date, image_path, username) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id'
+            result = db.execute(query, title, artist_id, length, type, genre, release_date, image_path, session[:username]).first 
+            redirect "/suggestions"
+        end
     end
     # ------
     # --- REMOVE A RELEASE ---
@@ -157,6 +174,37 @@ class App < Sinatra::Base
         redirect "/release/view/#{release_id}"
     end
 
+    # --- APPROVE A RELEASE ---
+    post '/release/suggestion/approve/:id' do |id|
+        
+        # Retrieve data from the suggestions table with the specified ID
+        suggestion = db.execute("SELECT * FROM release_suggestions WHERE id = ?", id).first
+
+        # Insert the extracted data into the releases table
+        query = 'INSERT INTO releases (title, artist_id, length, type, genre, release_date, image_path) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id'
+        result = db.execute(query, suggestion['title'], suggestion['artist_id'], suggestion['length'], suggestion['type'], suggestion['genre'], suggestion['release_date'], suggestion['image_path']).first 
+        
+        # Remove the release from the suggestions table
+        query_delete = 'DELETE FROM release_suggestions WHERE id = ?'
+        db.execute(query_delete, id)
+
+        # Redirect
+        redirect "/suggestions"
+
+    end
+
+    # --- REJECT A RELEASE ---
+    post '/release/suggestion/reject/:id' do |id|
+
+        # Remove the release from the suggestions table
+        query_delete = 'DELETE FROM release_suggestions WHERE id = ?'
+        db.execute(query_delete, id)
+
+        # Redirect
+        redirect "/suggestions"
+
+    end
+
     # -- ARTIST --
     # --- ADD AN ARTIST ---
     get '/artist/add' do
@@ -182,8 +230,20 @@ class App < Sinatra::Base
             image_path = nil
         end
 
-        query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?)'
-        result = db.execute(query, name, bio, country, city, image_path)
+        # Check if the user is an admin or an user
+        if (session[:role] == "admin")
+            # Insert the release data into the release database
+            query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?)'
+            result = db.execute(query, name, bio, country, city, image_path)
+            redirect "/artist/view/#{db.last_insert_row_id}"
+
+        elsif (session[:role] == "user")
+            # Insert the release data into the suggestion database
+            query = 'INSERT INTO artist_suggestions (name, bio, country, city, image_path, username) VALUES (?, ?, ?, ?, ?, ?)'
+            result = db.execute(query, name, bio, country, city, image_path, session[:username])
+            redirect "/suggestions"
+        end
+        
 
         redirect "/"
     end
@@ -249,7 +309,38 @@ class App < Sinatra::Base
 
         erb :artist_view
     end
-   
+
+    # --- APPROVE AN ARTIST ---
+    post '/artist/suggestion/approve/:id' do |id|
+        
+        # Retrieve data from the suggestions table with the specified ID
+        artist = db.execute("SELECT * FROM artist_suggestions WHERE id = ?", id).first
+
+        # Insert the extracted data into the releases table
+        query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?)'
+        result = db.execute(query, artist['name'], artist['bio'], artist['country'], artist['city'], artist['image_path'])
+        
+        # Remove the release from the suggestions table
+        query_delete = 'DELETE FROM artist_suggestions WHERE id = ?'
+        db.execute(query_delete, id)
+
+        # Redirect
+        redirect "/suggestions"
+
+    end
+
+    # --- REJECT AN ARTIST ---
+    post '/artist/suggestion/reject/:id' do |id|
+
+        # Remove the release from the suggestions table
+        query_delete = 'DELETE FROM artist_suggestions WHERE id = ?'
+        db.execute(query_delete, id)
+
+        # Redirect
+        redirect "/suggestions"
+
+    end
+
     # --- SEARCH FOR A RELEASE OR ARTIST --- (As of right now one can only search for releases, this may be uodated in the future so also artists can be searched)
     get "/release/search/" do
         # Get the search query from params
@@ -262,6 +353,14 @@ class App < Sinatra::Base
         erb :search_result
 
 
+    end
+
+    # --- HANDLE SUGGESTION GET REQUEST ---
+    get '/suggestions' do
+        @artist_suggestions = db.execute("SELECT * FROM artist_suggestions")
+        @release_suggestions = db.execute("SELECT * FROM release_suggestions")
+
+        erb :suggestions
     end
 
     # Login handling
@@ -331,7 +430,7 @@ class App < Sinatra::Base
         password_hash = BCrypt::Password.create(password)
 
         # Set the status
-        role = "user"
+        role = "admin"
 
         # Try to insert into the database
         begin
@@ -353,6 +452,14 @@ class App < Sinatra::Base
 
         redirect "/"
         
+    end
+
+    # Handle the logout request
+    get '/logout' do
+        if (session[:username])
+            session.clear
+            redirect '/'
+        end
     end
 
 
