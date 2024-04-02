@@ -1,0 +1,78 @@
+/* General */
+body {
+    background-color: rgb(77, 18, 18);
+    color: white;
+
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1f0606;
+    padding: 10px;
+    height: 100px;
+}
+
+button[type="submit"] {
+    padding: 6px 10px; /* Adjusted padding */
+    background-color: red;
+    border: 2px solid #8B0000; /* Darker red border */
+    color: white;
+    cursor: pointer;
+    border-radius: 4px; /* Rounded corners */
+
+}
+
+button[type="submit"]:hover {
+    background-color: rgb(77, 18, 18);
+}
+
+a {
+    color: white;
+}
+/* --- */
+
+
+/* Index */
+.column-container {
+    display: flex;
+    justify-content: space-between; 
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    background-color: #1f0606; 
+    padding: 10px;
+    margin: 15px;
+    width: 20%;
+  }
+/* --- */
+
+/* Form */
+form {
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(77, 18, 18);
+    max-width: 300px;
+}
+
+label {
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="date"],
+select {
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input[type="file"] {
+    margin-bottom: 10px;
+}
+
+/* --- */

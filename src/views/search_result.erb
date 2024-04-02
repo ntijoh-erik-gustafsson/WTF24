@@ -23,7 +23,7 @@
     <ul>
         <% @release_results.each do |release| %>
             <div>
-                <p><%= release['title'] %> - <%= release['artist'] %></p>
+                <p><%= get_artist_name_from_id(release['artist_id']) %> - <%= release['title'] %></p>
                 <form action="/release/view/<%= release['id'] %>" method="get"> 
                     <button type="submit">VIEW</button>
                 </form>

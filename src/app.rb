@@ -16,8 +16,11 @@ class App < Sinatra::Base
     
 
     get '/' do
-        @releases = db.execute("SELECT * FROM releases")
+        @latest_releases = db.execute("SELECT * FROM releases ORDER BY release_date DESC")
+        @hottest_releases = db.execute("SELECT * FROM releases ORDER BY clicks DESC LIMIT 10")
+
         @artists = db.execute("SELECT * FROM artists")
+
 
         erb :index
        # puts("test")
@@ -160,13 +163,29 @@ class App < Sinatra::Base
     
         @total_rating = count == 0 ? "None" : (total_rating / count).round(2)    
 
-        erb :release_view
+        # Increase a click for the release in the database
+        result = db.execute("UPDATE releases SET clicks = clicks + 1 WHERE id = ?", id)
+        puts "Clicks updated successfully!" if result
+        puts "Failed to update clicks!" unless result
+        
+        # Handle the error message for reviews
+        error_message = session.delete(:error_message)
+
+        erb :release_view, locals: { error_message: error_message }
     end
 
     # --- REVIEW A RELEASE ---
     post '/release/review/:id' do |release_id| 
         review_rating = params["rating"]
         review_text = params["review_text"]
+
+        # First check if a user has posted a review, if so, prevent user from posting again
+        existing_review = db.execute("SELECT id FROM reviews WHERE username = ?", session[:username]).first
+
+        if existing_review
+            session[:error_message] = "You can only post one review per release"
+            redirect "/release/view/#{release_id}"
+        end
         
         query = 'INSERT INTO reviews (release_id, username, review_rating, review_text) VALUES (?, ?, ?, ?) RETURNING id'
         result = db.execute(query, release_id, session[:username], review_rating, review_text)

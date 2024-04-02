@@ -1,6 +1,9 @@
 <h2>Title: <%= @release_info["title"] %></h2>
 <h2>Artist: <%= get_artist_name_from_id(@release_info["artist_id"]) %></h2>
-<img src="<%= @release_info["image_path"] %>" alt="Release Artwork" style="max-width: 200px;">
+
+<% if @release_info["image_path"] %>
+  <img src="<%= @release_info["image_path"] %>" alt="Release Artwork" style="max-width: 200px;">
+<% end %>
 
 <h3>Total rating score: <%= @total_rating %></h3>
 <h3>Reviews:</h3>
@@ -23,5 +26,8 @@
   <label for="rating">Rating (0-10):</label><br>
   <input type="number" id="rating" name="rating" min="0" max="10" step="0.1" required><br><br>
   
-  <input type="submit" value="Submit Review">
+  <button type="submit">Submit review</button>
 </form>
+
+  <br>
+<%= error_message %>

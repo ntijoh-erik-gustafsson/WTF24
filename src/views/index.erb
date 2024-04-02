@@ -1,37 +1,16 @@
 
-<% for artist in @artists %>
-    <div>
-        <p>Artist: <%= artist["name"] %></p>
+<div class="column-container">
+    <div class="column">
+    <h2>Latest additions: </h2>
+    <% for release in @latest_releases %>
+        <div class="latest_release_box">
+        <p><%= get_artist_name_from_id(release["artist_id"]) %> - <%= release["title"] %></p>
 
-
-        <% if session[:role] == 'admin' %>
-            <form action='/artist/remove/<%= artist["id"] %>' method='post'> 
-                <button type="submit">DELETE</button>
-            </form>
-
-            <form action='/artist/edit/<%= artist["id"] %>' method='get'> 
-                <button type="submit">EDIT</button>
-            </form>
-
-        <% end %>
-
-        <form action='/artist/view/<%= artist["id"] %>' method='get'> 
+        <form action='/release/view/<%= release["id"] %>' method='get'> 
             <button type="submit">VIEW</button>
         </form>
 
-
-    </div>
-<% end %>
-
-<p>---</p>
-
-<% for release in @releases %>
-    
-    <div>
-        <p><%= get_artist_name_from_id(release["artist_id"])%> - <%= release["title"]%><p>
-
-
-        <% if session[:role] == 'admin' %>
+            <% if session[:role] == 'admin' %>
             <form action='/release/remove/<%= release["id"] %>' method='post'> 
                 <button type="submit">DELETE</button>
             </form>
@@ -40,32 +19,69 @@
                 <button type="submit">EDIT</button>
             </form>
         <% end %>
-
-    <form action='/release/view/<%= release["id"] %>' method='get'> 
-        <button type="submit">VIEW</button>
-    </form>
-
-
-    <details>
-        <summary>More info</summary>
-        Name: <%= release[1] %> <br>
-        Artist: <%= release[2] %> <br>
-        Length: <%= release[3] %> <br>
-        Rating: <%= release[4] %> <br>
-        Type: <%= release[5] %> <br>
-        Genre: <%= release[6] %> <br>
-        Release date: <%= release[7] %> 
         
-    </details>
-
-
+        </div>
+    <% end %>
     </div>
 
-<% end %>
+
+    <!--
+        <details>
+            <summary>More info</summary>
+            Name: <%= release[1] %> <br>
+            Artist: <%= release[2] %> <br>
+            Length: <%= release[3] %> <br>
+            Rating: <%= release[4] %> <br>
+            Type: <%= release[5] %> <br>
+            Genre: <%= release[6] %> <br>
+            Release date: <%= release[7] %> 
+        </details>
+    -->   
+
+    <div class="column">
+    <h2>Hottest Releases: </h2>
+    <% index = 1 %>
+    <% for release in @hottest_releases %>
+        <div class="latest_release_box">
+        <p> <%= index.to_s + ". " %><%= get_artist_name_from_id(release["artist_id"]) %> - <%= release["title"] %></p>
+
+        <form action='/release/view/<%= release["id"] %>' method='get'> 
+            <button type="submit">VIEW</button>
+        </form>
+
+        <% if session[:role] == 'admin' %>
+            <form action='/release/remove/<%= release["id"] %>' method='post'> 
+            <button type="submit">DELETE</button>
+            </form>
+
+            <form action='/release/edit/<%= release["id"] %>' method='get'> 
+            <button type="submit">EDIT</button>
+            </form>
+        <% end %>
+
+        <% index+=1 %>
+        </div>
+    <% end %>
+    </div>
 
 
-
-
-
-
-
+    <div class="column">
+    <h2>Artists:</h2>
+    <% for artist in @artists %>
+        <div class="artist">
+        <p>Artist: <%= artist["name"] %></p>
+        <% if session[:role] == 'admin' %>
+            <form action='/artist/remove/<%= artist["id"] %>' method='post'> 
+            <button type="submit">DELETE</button>
+            </form>
+            <form action='/artist/edit/<%= artist["id"] %>' method='get'> 
+            <button type="submit">EDIT</button>
+            </form>
+        <% end %>
+        <form action='/artist/view/<%= artist["id"] %>' method='get'> 
+            <button type="submit">VIEW</button>
+        </form>
+        </div>
+    <% end %>
+    </div>
+</div>

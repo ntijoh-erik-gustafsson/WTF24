@@ -5,7 +5,9 @@
 
     <% for release in @release_suggestions %>
         
+        <p>-</p>
         <div>
+            <p><%= "Suggestion from " + release["username"] + ":"%><p>
             <p><%= get_artist_name_from_id(release["artist_id"])%> - <%= release["title"]%><p>
 
 
@@ -17,6 +19,7 @@
                     <button type="submit">REJECT</button>
                 </form>
         </div>
+        <p>-</p>
 
     <% end %>
     <p>---</p>

@@ -4,37 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Rater</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
 </head>
 <body>
-    <a href="/"><h1>MusicManiac</h1></a>
 
-    <% if session[:username] %>
-        <p>Logged in as <%= session[:username] %></p>
-        <p>Role: <%= session[:role] %></p>
+     <header>
+        <div class="header-left">
+            <% if session[:username] %>
+                    <p>Logged in as <%= session[:username] %></p>
+                    <p>Role: <%= session[:role] %></p>
+                    <a href="/logout">Logout</a>
+            <% else %>
+                <a href="/login">Login</a>
+                <a href="/register">Register</a>
+            <% end %>
 
-    <% end %>
+        </div>
 
-    <header>
-        <% if session[:username]%>
-            <a href="/release/add">Add a new release<a> 
-            <a href="/artist/add">Add a new artist<a> 
-            <a href="/logout">Logout<a>
-        <% else %>
-            <a href="/login">Login<a>
-            <a href="/register">Register<a>
-        <% end %>
+        <div class="header-center">
+            <a href="/"><h1>MusicManiac</h1></a>
+        </div>
 
-        <% if session[:role] == "admin" %>
-            <a href="/suggestions">Suggestions<a>
-        <% end %>
+        <div class="header-right">
+            <% if session[:username]%>
+                <a href="/release/add">Add a new release</a> 
+                <a href="/artist/add">Add a new artist</a> 
+            <% end %>
 
+            <% if session[:role] == "admin" %>
+                <a href="/suggestions">Suggestions</a>
+            <% end %>
 
-        <form action="/release/search/" method="GET">
-            <input type="text" name="query" placeholder="">
-            <button type="submit">Search</button>
-        </form>
+            <form action="/release/search/" method="GET">
+                <input type="text" name="query" placeholder="Search">
+                <button type="submit">Search</button>
+            </form>
 
+ 
+
+        </div>
     </header>
+
 
 	<%= yield %>
 </body>
