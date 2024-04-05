@@ -1,7 +1,7 @@
 <h2>Edit <%= @release_info["title"]%>:</h2>
 <form action="/release/edit/<%= @release_info["id"] %>" method="post" enctype="multipart/form-data">
         <label for="name">Title:</label>
-        <input type="text" id="title" name="title" value="<%= @release_info["title"] %>" required><br>
+        <input type="text" id="title" name="title" value="<%= html_escape(@release_info["title"]) %>" required><br>
 
         <label for="artist">Artist:</label>
         <select id="artist" name="artist_id" required>
@@ -11,7 +11,7 @@
         </select><br>
 
         <label for="length">Length:</label>
-        <input type="text" id="length" name="length" value="<%=  @release_info["length"]  %>" required><br>
+        <input type="text" id="length" name="length" value="<%=  html_escape(@release_info["length"])  %>" required><br>
 
         <label for="type">Type:</label>
         <select id="type" name="type" required>
@@ -21,7 +21,7 @@
         </select><br>
 
         <label for="genre">Genre:</label>
-        <input type="text" id="genre" name="genre" value="<%= @release_info["genre"]%>" required><br>
+        <input type="text" id="genre" name="genre" value="<%= html_escape(@release_info["genre"])%>" required><br>
 
         <label for="release_date">Release Date:</label>
         <input type="date" id="release_date" name="release_date" value="<%= @release_info["release_date"]%>" required><br>

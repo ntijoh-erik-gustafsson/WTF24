@@ -1,16 +1,16 @@
 <h2>Edit <%= @artist_info["name"]%>:</h2>
 <form action="/artist/edit/<%= @artist_info["id"] %>" method="post" enctype="multipart/form-data">
     <label for="name">Name:</label>
-    <input type="text" id="name" name="name" value="<%= @artist_info["name"] %>" required><br>
+    <input type="text" id="name" name="name" value="<%= html_escape(@artist_info["name"]) %>" required><br>
 
     <label for="bio">Bio:</label>
-    <textarea id="bio" name="bio" rows="4" required><%= @artist_info["bio"] %></textarea><br>
+    <textarea id="bio" name="bio" rows="4" required><%= html_escape(@artist_info["bio"]) %></textarea><br>
 
     <label for="country">Country:</label>
-    <input type="text" id="country" name="country" value="<%= @artist_info["country"] %>" required><br>
+    <input type="text" id="country" name="country" value="<%= html_escape(@artist_info["country"]) %>" required><br>
 
     <label for="city">City:</label>
-    <input type="text" id="city" name="city" value="<%= @artist_info["city"] %>" required><br>
+    <input type="text" id="city" name="city" value="<%= html_escape(@artist_info["city"]) %>" required><br>
 
     <label for="logo">Edit logo: </label>
     <input type="file" id="logo" name="logo" accept="image/*"><br>

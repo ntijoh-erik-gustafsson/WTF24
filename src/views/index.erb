@@ -4,7 +4,7 @@
     <h2>Latest additions: </h2>
     <% for release in @latest_releases %>
         <div class="latest_release_box">
-        <p><%= get_artist_name_from_id(release["artist_id"]) %> - <%= release["title"] %></p>
+        <p><%= html_escape(get_artist_name_from_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
 
         <form action='/release/view/<%= release["id"] %>' method='get'> 
             <button type="submit">VIEW</button>
@@ -43,7 +43,7 @@
     <% index = 1 %>
     <% for release in @hot_releases %>
         <div class="hot_release_box">
-        <p> <%= index.to_s + ". " %><%= get_artist_name_from_id(release["artist_id"]) %> - <%= release["title"] %></p>
+        <p> <%= index.to_s + ". " %><%= html_escape(get_artist_name_from_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
 
         <form action='/release/view/<%= release["id"] %>' method='get'> 
             <button type="submit">VIEW</button>
@@ -64,12 +64,39 @@
     <% end %>
     </div>
 
+    <div class="column">
+    <h2>Top Rated Releases:</h2>
+    <% release_index = 1 %>
+    <% for release in @top_releases %>
+        <div class="top_release_box">
+            <p><%= release_index.to_s + ". " %><%= html_escape(get_artist_name_from_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
+
+            <form action='/release/view/<%= release["id"] %>' method='get'> 
+                <button type="submit">VIEW</button>
+            </form>
+
+            <% if session[:role] == 'admin' %>
+                <form action='/release/remove/<%= release["id"] %>' method='post'> 
+                    <button type="submit">DELETE</button>
+                </form>
+
+                <form action='/release/edit/<%= release["id"] %>' method='get'> 
+                    <button type="submit">EDIT</button>
+                </form>
+            <% end %>
+            
+            <% release_index += 1 %>
+        </div>
+    <% end %>
+</div>
+
+
 
     <div class="column">
     <h2>Artists:</h2>
     <% for artist in @artists %>
         <div class="artist">
-        <p>Artist: <%= artist["name"] %></p>
+        <p>Artist: <%= html_escape(artist["name"]) %></p>
         <% if session[:role] == 'admin' %>
             <form action='/artist/remove/<%= artist["id"] %>' method='post'> 
             <button type="submit">DELETE</button>

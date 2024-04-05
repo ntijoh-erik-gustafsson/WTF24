@@ -1,8 +1,9 @@
 class App < Sinatra::Base
     enable :sessions
 
+    # Anti-bruteforce login configuration
     maximum_login_attempts = 5
-    login_cooldown = 5 * 60
+    login_cooldown = 60
     @@login_attempts = Hash.new { |hash, key|hash[key] = {attempts: 0, last_attempt: Time.now - login_cooldown - 1}}
 
     def db
@@ -12,9 +13,8 @@ class App < Sinatra::Base
         return @db
     end
 
-    # before hand in fucking use this funktion!!!!!!!
-    # Future erik: what the fuck is this?
-    def h(text)
+    # Function to protect against html attacks (to prevent users from typing in javascript to be executed when i print out stuff)
+    def html_escape(text)
         Rack::Utils.escape_html(text)
     end
     
@@ -22,11 +22,17 @@ class App < Sinatra::Base
         @latest_releases = db.execute("SELECT * FROM releases ORDER BY release_date DESC")
         @hot_releases = db.execute("SELECT * FROM releases ORDER BY clicks DESC LIMIT 10")
 
+        top_releases_query = "SELECT r.* FROM releases r
+        JOIN reviews rv ON r.id = rv.release_id
+        GROUP BY r.id
+        ORDER BY AVG(review_rating) DESC
+        LIMIT 5"
+        @top_releases = db.execute(top_releases_query)
+
         @artists = db.execute("SELECT * FROM artists")
 
 
         erb :index
-       # puts("test")
     end
 
     # -- GENERAL FUNCTIONS ---
@@ -168,8 +174,6 @@ class App < Sinatra::Base
 
         # Increase a click for the release in the database
         result = db.execute("UPDATE releases SET clicks = clicks + 1 WHERE id = ?", id)
-        puts "Clicks updated successfully!" if result
-        puts "Failed to update clicks!" unless result
         
         # Handle the error message for reviews
         error_message = session.delete(:error_message)
@@ -183,7 +187,9 @@ class App < Sinatra::Base
         review_text = params["review_text"]
 
         # First check if a user has posted a review, if so, prevent user from posting again
-        existing_review = db.execute("SELECT id FROM reviews WHERE username = ?", session[:username]).first
+        existing_review = db.execute("SELECT review.id FROM reviews AS review 
+        JOIN releases AS release ON review.release_id = release.id 
+        WHERE review.username = ? AND release.id = ?", [session[:username], release_id]).first
 
         if existing_review
             session[:error_message] = "You can only post one review per release"
@@ -401,10 +407,14 @@ class App < Sinatra::Base
         username = params["username"]
         password = params["password"]
 
-        # the thing that doesnt work is the login atttempts
+        # Check if the cooldown time has passed
+        if (Time.now - @@login_attempts[username][:last_attempt] > login_cooldown)
+            @@login_attempts[username][:attempts] = 0
+        end
+
         # Check the amount of login attempts
-        if (@@login_attempts[username][:attempts] >= login_cooldown) && (Time.now - @@login_attempts[username][:last_attempt]) < login_cooldown
-            session[:error_message] = "Stop it with the many attempts mr hackerman."
+        if (@@login_attempts[username][:attempts] >= maximum_login_attempts)
+            session[:error_message] = "Too many login attempts. Please try again later."
             redirect "/login"
         end
 

@@ -1,5 +1,5 @@
-<h2>Title: <%= @release_info["title"] %></h2>
-<h2>Artist: <%= get_artist_name_from_id(@release_info["artist_id"]) %></h2>
+<h2>Title: <%= html_escape(@release_info["title"]) %></h2>
+<h2>Artist: <%= html_escape(get_artist_name_from_id(@release_info["artist_id"])) %></h2>
 
 <% if @release_info["image_path"] %>
   <img src="<%= @release_info["image_path"] %>" alt="Release Artwork" style="max-width: 200px;">
@@ -11,14 +11,19 @@
 
 <% @review_info.each do |review| %>
   <div>
-      <p>Username: <%= review["username"] %></p>
-      <p>Text: <%= review["review_text"] %></p>
-    <p><strong>Rating:</strong> <%= review["review_rating"] %></p>
+      <p>Username: <%= html_escape(review["username"]) %></p>
+      <p>Text: <%= html_escape(review["review_text"]) %></p>
+    <p><strong>Rating:</strong> <%= html_escape(review["review_rating"]) %></p>
     <p>---</p>
   </div>
 <% end %>
 
 
+  <%= error_message %>
+
+  <br>
+
+<% if session[:user_id] %>
 <form action="/release/review/<%= @release_info["id"] %>" method="post">
   <label for="review_text">Review Text:</label><br>
   <textarea id="review_text" name="review_text" rows="8" cols="50" required></textarea><br><br>
@@ -27,7 +32,8 @@
   <input type="number" id="rating" name="rating" min="0" max="10" step="0.1" required><br><br>
   
   <button type="submit">Submit review</button>
+
 </form>
 
-  <br>
-<%= error_message %>
+<% end %>
+
