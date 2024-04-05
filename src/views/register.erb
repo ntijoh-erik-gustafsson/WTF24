@@ -1,16 +1,32 @@
-  <form action="/register" method="post">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required><br>
+  <div class="form-container">
+    <form action="/register" method="post">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" required><br>
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required><br>
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" required><br>
 
           <label for="confirm_password">Confirm password:</label>
-        <input type="password" id="confirm_password" name="confirm_password" required><br>
+          <input type="password" id="confirm_password" name="confirm_password" required><br>
 
-        <input type="submit" value="Register">
+          <label for="role">Select your role:</label>
+          
+          <div>
+            <input type="radio" id="user" name="role" value="user" required>
+            <label for="user">User</label>
+          </div>
 
-        <br>
-        <%= error_message %>
+          <div>
+            <input type="radio" id="admin" name="role" value="admin" required>
+            <label for="admin">Admin</label>
+          </div>
+
+          <br>
+
+          <button type="submit">Register</button>
+
+          <br>
+          <%= error_message %>
 
     </form>
+</div>

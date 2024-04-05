@@ -7,3 +7,17 @@
     <img src="<%= @artist_info["image_path"] %>" alt="Release Artwork" style="max-width: 200px;">
 <% end %>
 
+
+
+<% if !@releases.empty? %>
+    <h3>Releases:</h3>
+    <% @releases.each do |release| %>
+        <div>
+            <p><%= get_artist_name_from_id(release['artist_id']) %> - <%= release['title'] %></p>
+            <form action="/release/view/<%= release['id'] %>" method="get"> 
+                <button type="submit">VIEW</button>
+            </form>
+
+        </div>
+    <% end %>
+<% end %>

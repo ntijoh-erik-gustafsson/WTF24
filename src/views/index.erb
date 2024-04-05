@@ -39,10 +39,10 @@
     -->   
 
     <div class="column">
-    <h2>Hottest Releases: </h2>
+    <h2>Hot Releases: </h2>
     <% index = 1 %>
-    <% for release in @hottest_releases %>
-        <div class="latest_release_box">
+    <% for release in @hot_releases %>
+        <div class="hot_release_box">
         <p> <%= index.to_s + ". " %><%= get_artist_name_from_id(release["artist_id"]) %> - <%= release["title"] %></p>
 
         <form action='/release/view/<%= release["id"] %>' method='get'> 

@@ -1,6 +1,9 @@
 class App < Sinatra::Base
-
     enable :sessions
+
+    maximum_login_attempts = 5
+    login_cooldown = 5 * 60
+    @@login_attempts = Hash.new { |hash, key|hash[key] = {attempts: 0, last_attempt: Time.now - login_cooldown - 1}}
 
     def db
         return @db if @db
@@ -10,14 +13,14 @@ class App < Sinatra::Base
     end
 
     # before hand in fucking use this funktion!!!!!!!
+    # Future erik: what the fuck is this?
     def h(text)
         Rack::Utils.escape_html(text)
     end
     
-
     get '/' do
         @latest_releases = db.execute("SELECT * FROM releases ORDER BY release_date DESC")
-        @hottest_releases = db.execute("SELECT * FROM releases ORDER BY clicks DESC LIMIT 10")
+        @hot_releases = db.execute("SELECT * FROM releases ORDER BY clicks DESC LIMIT 10")
 
         @artists = db.execute("SELECT * FROM artists")
 
@@ -326,6 +329,8 @@ class App < Sinatra::Base
         @artist_info = db.execute("SELECT * FROM artists WHERE id = ?", id)
         @artist_info = @artist_info[0]
 
+        @releases = db.execute("SELECT * FROM releases WHERE artist_id = ?", id)
+
         erb :artist_view
     end
 
@@ -384,8 +389,10 @@ class App < Sinatra::Base
 
     # Login handling
     get '/login' do 
+        # Retrieve the error message and delete it
         error_message = session.delete(:error_message)
 
+        # Redirect
         erb :login, locals: { error_message: error_message }
     end
 
@@ -393,13 +400,24 @@ class App < Sinatra::Base
         # Retrieve the username and password from the form
         username = params["username"]
         password = params["password"]
-    
+
+        # the thing that doesnt work is the login atttempts
+        # Check the amount of login attempts
+        if (@@login_attempts[username][:attempts] >= login_cooldown) && (Time.now - @@login_attempts[username][:last_attempt]) < login_cooldown
+            session[:error_message] = "Stop it with the many attempts mr hackerman."
+            redirect "/login"
+        end
+
         # Retrieve the user info for the username from the database
         user = db.execute('SELECT * FROM users WHERE username = ?', username).first
     
         # Ensure the user exists
         if user.nil?
             session[:error_message] = "User is not found"
+
+            @@login_attempts[username][:attempts] += 1
+            @@login_attempts[username][:last_attempt] = Time.now
+
             redirect "/login"
         end
     
@@ -416,10 +434,17 @@ class App < Sinatra::Base
             puts(session[:username])
             puts(session[:role])
 
+            @@login_attempts[username][:attempts] = 0
+            @@login_attempts[username][:last_attempt] = Time.now
+
             redirect "/"
 
         else 
             session[:error_message] = "Password is incorrect"
+
+            @@login_attempts[username][:attempts] += 1
+            @@login_attempts[username][:last_attempt] = Time.now
+
             redirect '/login'        
         end
 
@@ -438,6 +463,7 @@ class App < Sinatra::Base
         username = params["username"]
         password = params["password"]
         password_confirm = params["confirm_password"]
+        role = params["role"]
 
         # Check if passwords match
         if password != password_confirm
@@ -447,9 +473,6 @@ class App < Sinatra::Base
 
         # Hash the retrieved form password
         password_hash = BCrypt::Password.create(password)
-
-        # Set the status
-        role = "admin"
 
         # Try to insert into the database
         begin
