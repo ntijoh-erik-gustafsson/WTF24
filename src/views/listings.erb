@@ -1,0 +1,46 @@
+
+<div class="column-container">
+    <div class="column">
+    <h2>Releases: </h2>
+    <% for release in @releases %>
+        <div>
+        <p><%= html_escape(get_artist_name_from_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
+
+        <form action='/release/view/<%= release["id"] %>' method='get'> 
+            <button type="submit">VIEW</button>
+        </form>
+
+            <% if session[:role] == 'admin' %>
+            <form action='/release/remove/<%= release["id"] %>' method='post'> 
+                <button type="submit">DELETE</button>
+            </form>
+
+            <form action='/release/edit/<%= release["id"] %>' method='get'> 
+                <button type="submit">EDIT</button>
+            </form>
+        <% end %>
+        
+        </div>
+    <% end %>
+</div>
+
+<div class="column">
+    <h2>Artists:</h2>
+    <% for artist in @artists %>
+        <div>
+        <p>Artist: <%= html_escape(artist["name"]) %></p>
+        <% if session[:role] == 'admin' %>
+            <form action='/artist/remove/<%= artist["id"] %>' method='post'> 
+            <button type="submit">DELETE</button>
+            </form>
+            <form action='/artist/edit/<%= artist["id"] %>' method='get'> 
+            <button type="submit">EDIT</button>
+            </form>
+        <% end %>
+        <form action='/artist/view/<%= artist["id"] %>' method='get'> 
+            <button type="submit">VIEW</button>
+        </form>
+        </div>
+    <% end %>
+    </div>
+</div>

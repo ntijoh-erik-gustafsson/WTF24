@@ -19,7 +19,6 @@ class App < Sinatra::Base
     end
     
     get '/' do
-        @latest_releases = db.execute("SELECT * FROM releases ORDER BY release_date DESC")
         @hot_releases = db.execute("SELECT * FROM releases ORDER BY clicks DESC LIMIT 10")
 
         top_releases_query = "SELECT r.* FROM releases r
@@ -29,12 +28,18 @@ class App < Sinatra::Base
         LIMIT 5"
         @top_releases = db.execute(top_releases_query)
 
-        @artists = db.execute("SELECT * FROM artists")
-
-
         erb :index
     end
 
+    # --- VIEW ALL LISTINGS ---
+    get "/listings" do
+        @releases = db.execute("SELECT * FROM releases")
+        @artists = db.execute("SELECT * FROM artists")
+
+        erb :listings
+    end
+    # --- 
+   
     # -- GENERAL FUNCTIONS ---
     def get_artist_name_from_id(artist_id)
         puts(artist_id.to_s)

@@ -12,6 +12,7 @@
 
      <header>
         <div class="header-left">
+            <br>
             <% if session[:username] %>
                     <p>Logged in as <%= html_escape(session[:username]) %></p>
                     <p>Role: <%= session[:role] %></p>
@@ -28,6 +29,8 @@
         </div>
 
         <div class="header-right">
+            <a href="/listings">View all releases and artists</a>
+            <br>
             <% if session[:username]%>
                 <a href="/release/add">Add a new release</a> 
                 <a href="/artist/add">Add a new artist</a> 

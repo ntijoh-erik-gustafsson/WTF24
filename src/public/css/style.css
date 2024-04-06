@@ -11,7 +11,7 @@ header {
     align-items: center;
     background-color: #1f0606;
     padding: 10px;
-    height: 100px;
+    height: 110px;
 }
 
 button[type="submit"] {
@@ -63,7 +63,7 @@ input[type="file"] {
 /* index.erb */
 .column-container {
     display: flex;
-    justify-content: space-between; 
+    justify-content: space-evenly; 
 }
 
 .column {
@@ -88,3 +88,35 @@ input[type="file"] {
 
 /* --- */
 
+/* release_view.erb */
+.release-info {
+    text-align: center;
+}
+
+.release-info img {
+    max-width: 200px;
+    display: block;
+    margin: 0 auto;
+}
+
+.review-container {
+    display: flex;
+    justify-content: center;
+}
+
+.review {
+    background-color: #5c1c1c;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    width: 15%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.review p {
+    margin: 0;
+}
+
+.review strong {
+    color: white;
+}
