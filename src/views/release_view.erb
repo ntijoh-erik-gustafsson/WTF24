@@ -2,7 +2,7 @@
 <div class="container">
     <div class="release-info">
         <h2>Title: <%= html_escape(@release_info["title"]) %></h2>
-        <h2>Artist: <%= html_escape(get_artist_name_from_id(@release_info["artist_id"])) %></h2>
+        <h2>Artist: <%= html_escape(Artists.get_artist_name_from_artist_id(@release_info["artist_id"])) %></h2>
 
         <% if @release_info["image_path"] %>
         <img src="<%= @release_info["image_path"] %>" alt="Release Artwork">
@@ -12,13 +12,20 @@
         <h3>Reviews:</h3>
 
         <div class=review-container>
-          <% @review_info.each do |review| %>
-          <div class="review">
-              <p><u><%= html_escape(review["username"]) %></u></p>
-              <p><%= html_escape(review["review_text"]) %></p>
-              <p><strong>Rating:</strong> <%= html_escape(review["review_rating"]) %>/10</p>
-          </div>
+        <% if @review_info != nil%>
+            <% @review_info.each do |review| %>
+            <div class="review">
+                <p><u><%= html_escape(review["username"]) %></u></p>
+                <p><%= html_escape(review["review_text"]) %></p>
+                <p><strong>Rating:</strong> <%= html_escape(review["review_rating"]) %>/10</p>
+            </div>
+            <% end %>
+          
+          <% else %>
+              <p>There are no reviews for this release.</p>
+
           <% end %>
+
         </div>
 
         <%= error_message %>

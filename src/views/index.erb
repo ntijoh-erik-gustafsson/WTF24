@@ -6,7 +6,7 @@
         <% index = 1 %>
         <% for release in @hot_releases %>
             <div>
-                <p> <%= index.to_s + ". " %><%= html_escape(get_artist_name_from_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
+                <p> <%= index.to_s + ". " %><%= html_escape(Artists.get_artist_name_from_artist_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
 
                 <form action='/release/view/<%= release["id"] %>' method='get'> 
                     <button type="submit">VIEW</button>
@@ -33,7 +33,7 @@
         <% index = 1 %>
         <% for release in @top_releases %>
             <div>
-                <p><%= index.to_s + ". " %><%= html_escape(get_artist_name_from_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
+                <p><%= index.to_s + ". " %><%= html_escape(Artists.get_artist_name_from_artist_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
 
                 <form action='/release/view/<%= release["id"] %>' method='get'> 
                     <button type="submit">VIEW</button>

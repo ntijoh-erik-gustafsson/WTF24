@@ -1,17 +1,19 @@
+require_relative 'models/releases'
+require_relative 'models/release_suggestions'
+require_relative 'models/artists'
+require_relative 'models/artist_suggestions'
+require_relative 'models/user'
+require_relative 'models/reviews'
+
 class App < Sinatra::Base
     enable :sessions
 
     # Anti-bruteforce login configuration
-    maximum_login_attempts = 5
-    login_cooldown = 60
-    @@login_attempts = Hash.new { |hash, key|hash[key] = {attempts: 0, last_attempt: Time.now - login_cooldown - 1}}
-
-    def db
-        return @db if @db
-        @db = SQLite3::Database.new('./db/music.sqlite')
-        @db.results_as_hash = true
-        return @db
-    end
+    MAXIMUM_LOGIN_ATTEMPTS = 5
+    LOGIN_COOLDOWN = 60
+    
+    @@login_attempts = Hash.new { |hash, key|hash[key] = {attempts: 0, last_attempt: Time.now - LOGIN_COOLDOWN - 1}}
+    
 
     # Function to protect against html attacks (to prevent users from typing in javascript to be executed when i print out stuff)
     def html_escape(text)
@@ -19,34 +21,22 @@ class App < Sinatra::Base
     end
     
     get '/' do
-        @hot_releases = db.execute("SELECT * FROM releases ORDER BY clicks DESC LIMIT 10")
-
-        top_releases_query = "SELECT r.* FROM releases r
-        JOIN reviews rv ON r.id = rv.release_id
-        GROUP BY r.id
-        ORDER BY AVG(review_rating) DESC
-        LIMIT 5"
-        @top_releases = db.execute(top_releases_query)
+        @hot_releases = Releases.most_popular(5)
+        @top_releases = Releases.highest_reviewed(5)
 
         erb :index
     end
 
     # --- VIEW ALL LISTINGS ---
     get "/listings" do
-        @releases = db.execute("SELECT * FROM releases")
-        @artists = db.execute("SELECT * FROM artists")
+        @releases = Releases.all
+        @artists = Artists.all
 
         erb :listings
     end
     # --- 
    
     # -- GENERAL FUNCTIONS ---
-    def get_artist_name_from_id(artist_id)
-        puts(artist_id.to_s)
-        artist = db.execute("SELECT name FROM artists WHERE id = ?", artist_id).first
-        artist ? artist["name"] : "Unknown"
-    end
-
     #---
 
     # -- RELEASES --
@@ -54,7 +44,7 @@ class App < Sinatra::Base
     get '/release/add' do
         # First check if the user is logged in
         if session[:username]
-            @artists = db.execute("SELECT * FROM artists")
+            @artists = Artists.all
             erb :release_add
         else
             redirect '/'
@@ -91,37 +81,27 @@ class App < Sinatra::Base
         # Check if the user is an admin or an user
         if (session[:role] == "admin")
             # Insert the release data into the release database
-            query = 'INSERT INTO releases (title, artist_id, length, type, genre, release_date, image_path) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id'
-            result = db.execute(query, title, artist_id, length, type, genre, release_date, image_path).first 
-            redirect "/release/view/#{db.last_insert_row_id}"
+            release_id = Releases.insert(query, title, artist_id, length, type, genre, release_date, image_path)
+            redirect "/release/view/#{release_id}"
 
         elsif (session[:role] == "user")
             # Insert the release data into the suggestion database
-            query = 'INSERT INTO release_suggestions (title, artist_id, length, type, genre, release_date, image_path, username) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id'
-            result = db.execute(query, title, artist_id, length, type, genre, release_date, image_path, session[:username]).first 
+            Suggestions.insert(query, title, artist_id, length, type, genre, release_date, image_path, session[:username])
             redirect "/suggestions"
         end
     end
     # ------
     # --- REMOVE A RELEASE ---
     post '/release/remove/:id' do |id| 
-
-        # Remove reviews associated with the release
-        db.execute('DELETE FROM reviews WHERE release_id = ?', id)
-
-        # Remove the release
-        db.execute('DELETE FROM releases WHERE id = ?', id)
-        
+        Releases.remove(id)
         redirect "/"
     end
 
     # ------
     # --- EDIT A RELEASE ---
     get '/release/edit/:id' do |id|
-        @release_info = db.execute("SELECT * FROM releases WHERE id = ?", id)
-        @release_info = @release_info[0]
-
-        @artists = db.execute("SELECT * FROM artists")
+        @release_info = Releases.find(id) 
+        @artists = Artists.all
 
         erb :release_edit
     end
@@ -137,9 +117,7 @@ class App < Sinatra::Base
 
         # First check if artwork file is empty since its not neccesarry for the user to update, if it is --> then just update the rest of the information
         if artwork_file == nil
-            query = "UPDATE releases SET title = ?, artist_id = ?, length = ?, type = ?, genre = ?, release_date = ? WHERE id = ?"
-            result = db.execute(query, title, artist_id, length, type, genre, release_date, id)
-
+            Releases.update_without_image(id)
         else 
 
             # [to-do] Remove the old image
@@ -150,9 +128,7 @@ class App < Sinatra::Base
             end
 
             # Update the database        
-            query = "UPDATE releases SET title = ?, artist_id = ?, length = ?, rating = ?, type = ?, genre = ?, release_date = ?, image_path = ? WHERE id = ?"
-            result = db.execute(query, title, artist_id, length, rating, type, genre, release_date, "/artwork/" + artwork_file[:filename], id)
-
+            Releases.update_with_image(id)
          end
             
         redirect "/"
@@ -160,50 +136,44 @@ class App < Sinatra::Base
     # ------
     # --- VIEW A RELEASE ---
     get '/release/view/:id' do |id|
-        @release_info = db.execute("SELECT * FROM releases WHERE id = ?", id)
-        @release_info = @release_info[0]
-
-        @review_info = db.execute("SELECT * FROM reviews WHERE release_id = ?", id)
-       
+        @release_info = Releases.find(id)
+        @review_info = Reviews.find_reviews_by_release_id(id)
+      
         # Calculate the total rating of the release
         total_rating = 0
         count = 0
-        unless @review_info.empty?
-            @review_info.each do |review|
-                total_rating += review['review_rating']
-                count += 1
-            end
+        unless @review_info.nil? || @review_info.empty?
+          @review_info.each do |review|
+            total_rating += review['review_rating']
+            count += 1
+          end
         end
-    
-        @total_rating = count == 0 ? "None" : (total_rating / count).round(2)    
-
+      
+        @total_rating = count == 0 ? "None" : (total_rating / count).round(2)
+      
         # Increase a click for the release in the database
-        result = db.execute("UPDATE releases SET clicks = clicks + 1 WHERE id = ?", id)
-        
+        Releases.increase_click(id)
+      
         # Handle the error message for reviews
         error_message = session.delete(:error_message)
-
+      
         erb :release_view, locals: { error_message: error_message }
-    end
-
+      end
+      
     # --- REVIEW A RELEASE ---
     post '/release/review/:id' do |release_id| 
         review_rating = params["rating"]
         review_text = params["review_text"]
 
         # First check if a user has posted a review, if so, prevent user from posting again
-        existing_review = db.execute("SELECT review.id FROM reviews AS review 
-        JOIN releases AS release ON review.release_id = release.id 
-        WHERE review.username = ? AND release.id = ?", [session[:username], release_id]).first
+        existing_review = Reviews.check_if_exist(session[:username], release_id)
 
         if existing_review
             session[:error_message] = "You can only post one review per release"
             redirect "/release/view/#{release_id}"
         end
         
-        query = 'INSERT INTO reviews (release_id, username, review_rating, review_text) VALUES (?, ?, ?, ?) RETURNING id'
-        result = db.execute(query, release_id, session[:username], review_rating, review_text)
-    
+        Reviews.insert(release_id, review_rating, review_text, session[:username])
         redirect "/release/view/#{release_id}"
     end
 
@@ -211,15 +181,13 @@ class App < Sinatra::Base
     post '/release/suggestion/approve/:id' do |id|
         
         # Retrieve data from the suggestions table with the specified ID
-        suggestion = db.execute("SELECT * FROM release_suggestions WHERE id = ?", id).first
+        suggestion = Release_suggestions.find(id)
 
         # Insert the extracted data into the releases table
-        query = 'INSERT INTO releases (title, artist_id, length, type, genre, release_date, image_path) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id'
-        result = db.execute(query, suggestion['title'], suggestion['artist_id'], suggestion['length'], suggestion['type'], suggestion['genre'], suggestion['release_date'], suggestion['image_path']).first 
+        Releases.insert(suggestion['title'], suggestion['artist_id'], suggestion['length'], suggestion['type'], suggestion['genre'], suggestion['release_date'], suggestion['image_path'])
         
         # Remove the release from the suggestions table
-        query_delete = 'DELETE FROM release_suggestions WHERE id = ?'
-        db.execute(query_delete, id)
+        Release_suggestions.remove(id)
 
         # Redirect
         redirect "/suggestions"
@@ -230,8 +198,7 @@ class App < Sinatra::Base
     post '/release/suggestion/reject/:id' do |id|
 
         # Remove the release from the suggestions table
-        query_delete = 'DELETE FROM release_suggestions WHERE id = ?'
-        db.execute(query_delete, id)
+        Release_suggestions.remove(id)
 
         # Redirect
         redirect "/suggestions"
@@ -265,15 +232,13 @@ class App < Sinatra::Base
 
         # Check if the user is an admin or an user
         if (session[:role] == "admin")
-            # Insert the release data into the release database
-            query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?)'
-            result = db.execute(query, name, bio, country, city, image_path)
-            redirect "/artist/view/#{db.last_insert_row_id}"
+            # Insert the artist data into the release database
+            artist_id = Artists.insert(id, name, bio, country, city, image_path)
+            redirect "/artist/view/#{artist_id}"
 
         elsif (session[:role] == "user")
             # Insert the release data into the suggestion database
-            query = 'INSERT INTO artist_suggestions (name, bio, country, city, image_path, username) VALUES (?, ?, ?, ?, ?, ?)'
-            result = db.execute(query, name, bio, country, city, image_path, session[:username])
+            Artists.insert_suggestion(id, name, bio, country, city, image_path, username)
             redirect "/suggestions"
         end
         
@@ -283,22 +248,13 @@ class App < Sinatra::Base
     # ------
     # --- REMOVE AN ARTIST ---
     post '/artist/remove/:id' do |id| 
-        # Remove releases associated with the artist
-        db.execute('DELETE FROM releases WHERE artist_id = ?', id)
-        
-        # Remove reviews associated with the releases deleted
-        db.execute('DELETE FROM reviews WHERE release_id NOT IN (SELECT id FROM releases)')
-    
-        # Remove the artist
-        db.execute('DELETE FROM artists WHERE id = ?', id)
-        
+        Artists.remove(id)
         redirect "/"
     end
         
      # --- EDIT AN ARTIST ---
      get '/artist/edit/:id' do |id|
-        @artist_info = db.execute("SELECT * FROM artists WHERE id = ?", id)
-        @artist_info = @artist_info[0]
+        Artists.find(id)
         erb :artist_edit
     end
 
@@ -312,9 +268,7 @@ class App < Sinatra::Base
 
         # First check if artwork file is empty since its not neccesarry for the user to update, if it is --> then just update the rest of the information
         if logo_file == nil
-            query = "UPDATE artists SET name = ?, bio = ?, country = ?, city = ? WHERE id = ?"
-            result = db.execute(query, name, bio, country, city, id)
-
+            Artists.update_without_image(id, name, bio, country, city, image_path)
         else 
 
             # [to-do] Remove the old image
@@ -327,8 +281,7 @@ class App < Sinatra::Base
             end
 
             # Update the database        
-            query = "UPDATE artists SET name = ?, bio = ?, country = ?, city = ?, image_path = ? WHERE id = ?"
-            result = db.execute(query, name, bio, country, city, image_path, id)
+            Artists.update_with_image(id, name, bio, country, city, image_path)
 
          end
             
@@ -337,27 +290,23 @@ class App < Sinatra::Base
     # ------
     # --- VIEW AN ARTISTS ---
     get '/artist/view/:id' do |id|
-        @artist_info = db.execute("SELECT * FROM artists WHERE id = ?", id)
-        @artist_info = @artist_info[0]
-
-        @releases = db.execute("SELECT * FROM releases WHERE artist_id = ?", id)
+        Artists.find(id)
+        Releases.find(id)
 
         erb :artist_view
     end
 
     # --- APPROVE AN ARTIST ---
     post '/artist/suggestion/approve/:id' do |id|
+
+        # Insert the extracted data into the artists table
+        Artists.insert(artist['name'], artist['bio'], artist['country'], artist['city'], artist['image_path'])
         
         # Retrieve data from the suggestions table with the specified ID
-        artist = db.execute("SELECT * FROM artist_suggestions WHERE id = ?", id).first
-
-        # Insert the extracted data into the releases table
-        query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?)'
-        result = db.execute(query, artist['name'], artist['bio'], artist['country'], artist['city'], artist['image_path'])
+        Artist_suggestions.find(id)
         
         # Remove the release from the suggestions table
-        query_delete = 'DELETE FROM artist_suggestions WHERE id = ?'
-        db.execute(query_delete, id)
+        Artist_suggestions.remove(id)
 
         # Redirect
         redirect "/suggestions"
@@ -368,8 +317,7 @@ class App < Sinatra::Base
     post '/artist/suggestion/reject/:id' do |id|
 
         # Remove the release from the suggestions table
-        query_delete = 'DELETE FROM artist_suggestions WHERE id = ?'
-        db.execute(query_delete, id)
+        Artist_suggestions.remove(id)
 
         # Redirect
         redirect "/suggestions"
@@ -379,11 +327,11 @@ class App < Sinatra::Base
     # --- SEARCH FOR A RELEASE OR ARTIST --- (As of right now one can only search for releases, this may be uodated in the future so also artists can be searched)
     get "/release/search/" do
         # Get the search query from params
-        @query = params[:query]
+        query = params[:query]
 
         # Perform the search based on the query 
-        @release_results = db.execute("SELECT * FROM releases WHERE title LIKE ?", "%#{@query}%")
-        @artist_results = db.execute("SELECT * FROM artists WHERE name LIKE ?", "%#{@query}%")
+        @release_results = Releases.search(query)
+        @artist_results = Artists.search(query)
 
         erb :search_result
 
@@ -392,8 +340,8 @@ class App < Sinatra::Base
 
     # --- HANDLE SUGGESTION GET REQUEST ---
     get '/suggestions' do
-        @artist_suggestions = db.execute("SELECT * FROM artist_suggestions")
-        @release_suggestions = db.execute("SELECT * FROM release_suggestions")
+        @artist_suggestions = Artist_suggestions.all()
+        @release_suggestions = Releases_suggestions.all()
 
         erb :suggestions
     end
@@ -413,18 +361,18 @@ class App < Sinatra::Base
         password = params["password"]
 
         # Check if the cooldown time has passed
-        if (Time.now - @@login_attempts[username][:last_attempt] > login_cooldown)
+        if (Time.now - @@login_attempts[username][:last_attempt] > LOGIN_COOLDOWN)
             @@login_attempts[username][:attempts] = 0
         end
 
         # Check the amount of login attempts
-        if (@@login_attempts[username][:attempts] >= maximum_login_attempts)
+        if (@@login_attempts[username][:attempts] >= MAXIMUM_LOGIN_ATTEMPTS)
             session[:error_message] = "Too many login attempts. Please try again later."
             redirect "/login"
         end
 
         # Retrieve the user info for the username from the database
-        user = db.execute('SELECT * FROM users WHERE username = ?', username).first
+        user = User.get_user_info(username)
     
         # Ensure the user exists
         if user.nil?
@@ -491,8 +439,7 @@ class App < Sinatra::Base
 
         # Try to insert into the database
         begin
-            query = 'INSERT INTO users (role, username, password) VALUES (?, ?, ?)'
-            result = db.execute(query, role, username, password_hash).first
+            user_id = User.insert(username, password_hash)
 
         rescue SQLite3::ConstraintException => e
             session[:error_message] = "Username is already taken"
@@ -503,7 +450,7 @@ class App < Sinatra::Base
             redirect '/register'
         end
     
-        session[:user_id] = db.last_insert_row_id 
+        session[:user_id] = user_id 
         session[:username] = username
         session[:role] = role
 

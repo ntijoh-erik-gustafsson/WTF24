@@ -13,7 +13,7 @@
     <h3>Releases:</h3>
     <% @releases.each do |release| %>
         <div>
-            <p><%= get_artist_name_from_id(release['artist_id']) %> - <%= release['title'] %></p>
+            <p><%= Artists.get_artist_name_from_artist_id(release['artist_id']) %> - <%= release['title'] %></p>
             <form action="/release/view/<%= release['id'] %>" method="get"> 
                 <button type="submit">VIEW</button>
             </form>
