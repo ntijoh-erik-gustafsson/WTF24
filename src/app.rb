@@ -45,7 +45,9 @@ class App < Sinatra::Base
         # First check if the user is logged in
         if session[:username]
             @artists = Artists.all
+            @genres = Releases.get_genres
             erb :release_add
+            
         else
             redirect '/'
         end
@@ -57,7 +59,7 @@ class App < Sinatra::Base
         artist_id = params["artist_id"]
         length = params["length"]
         type = params["type"]
-        genre = params["genre"]
+        genres = params["genres"]
         release_date = params["release_date"]
         artwork_file = params["release_artwork"]
 
@@ -81,13 +83,13 @@ class App < Sinatra::Base
         # Check if the user is an admin or an user
         if (session[:role] == "admin")
             # Insert the release data into the release database
-            release_id = Releases.insert(query, title, artist_id, length, type, genre, release_date, image_path)
+            release_id = Releases.insert(title, artist_id, length, type, genres, release_date, image_path)
             redirect "/release/view/#{release_id}"
 
         elsif (session[:role] == "user")
             # Insert the release data into the suggestion database
-            Suggestions.insert(query, title, artist_id, length, type, genre, release_date, image_path, session[:username])
-            redirect "/suggestions"
+            Release_suggestions.insert(title, artist_id, length, type, genres, release_date, image_path, session[:username])
+            redirect "/"
         end
     end
     # ------
@@ -341,7 +343,7 @@ class App < Sinatra::Base
     # --- HANDLE SUGGESTION GET REQUEST ---
     get '/suggestions' do
         @artist_suggestions = Artist_suggestions.all()
-        @release_suggestions = Releases_suggestions.all()
+        @release_suggestions = Release_suggestions.all()
 
         erb :suggestions
     end

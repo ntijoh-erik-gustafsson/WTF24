@@ -1,11 +1,11 @@
 module Artist_suggestions 
 
     def self.all 
-        @db.execute('SELECT * FROM artist_suggestions')
+        db.execute('SELECT * FROM artist_suggestions')
     end
 
     def self.find(id) 
-        @db.execute('SELECT * FROM artist_suggestions WHERE id = ?', id).first
+        db.execute('SELECT * FROM artist_suggestions WHERE id = ?', id).first
     end
 
     def self.insert(title, artist_id, length, type, genre, release_date, image_path)

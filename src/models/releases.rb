@@ -41,6 +41,11 @@ module Releases
 
     end
 
+    def self.get_genres()
+        db.execute("SELECT name FROM genres").map { |row| row['name'] }
+
+    end
+
     def self.insert(title, artist_id, length, type, genre, release_date, image_path)
         query = 'INSERT INTO releases (title, artist_id, length, type, genre, release_date, image_path) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id'
         result = db.execute(query, title, artist_id, length, type, genre, release_date, image_path).first 

@@ -8,16 +8,16 @@
         <p>-</p>
         <div>
             <p><%= "Suggestion from " + release["username"] + ":"%><p>
-            <p><%= get_artist_name_from_id(release["artist_id"])%> - <%= release["title"]%><p>
+            <p><%= Artists.get_artist_name_from_artist_id(release["artist_id"])%> - <%= release["title"]%><p>
 
 
-                <form action='/release/suggestion/approve/<%= release["id"] %>' method='post'> 
-                    <button type="submit">APROVE</button>
-                </form>
+                    <form action='/release/suggestion/approve/<%= release["id"] %>' method='post'> 
+                        <button type="submit">APROVE</button>
+                    </form>
 
-                <form action='/release/suggestion/reject/<%= release["id"] %>' method='post'> 
-                    <button type="submit">REJECT</button>
-                </form>
+                    <form action='/release/suggestion/reject/<%= release["id"] %>' method='post'> 
+                        <button type="submit">REJECT</button>
+                    </form>
         </div>
         <p>-</p>
 
@@ -31,13 +31,13 @@
         <div>
             <p><%= artist['name'] %><p>
 
-                <form action='/artist/suggestion/approve/<%= artist["id"] %>' method='post'> 
-                    <button type="submit">APROVE</button>
-                </form>
+                    <form action='/artist/suggestion/approve/<%= artist["id"] %>' method='post'> 
+                        <button type="submit">APROVE</button>
+                    </form>
 
-                <form action='/artist/suggestion/reject/<%= artist["id"] %>' method='post'> 
-                    <button type="submit">REJECT</button>
-                </form>
+                    <form action='/artist/suggestion/reject/<%= artist["id"] %>' method='post'> 
+                        <button type="submit">REJECT</button>
+                    </form>
         </div>
 
     <% end %>

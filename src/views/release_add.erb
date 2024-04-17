@@ -1,33 +1,94 @@
 <h2>Add release:</h2>
-<form action="/release/add" method="post" enctype="multipart/form-data">
-        <label for="name">Title:</label>
-        <input type="text" id="title" name="title" required><br>
+<form id="addReleaseForm" action="/release/add" method="post" enctype="multipart/form-data">
+    <label for="name">Title:</label>
+    <input type="text" id="title" name="title" required><br>
 
-        <label for="artist">Artist:</label>
-        <select id="artist" name="artist_id" required>
-            <% @artists.each do |artist| %>
-                <option value="<%= artist['id'] %>"><%= artist['name'] %></option>
-            <% end %>
-        </select><br>
+    <label for="artist">Artist:</label>
+    <select id="artist" name="artist_id" required>
+        <% @artists.each do |artist| %>
+            <option value="<%= artist['id'] %>"><%= artist['name'] %></option>
+        <% end %>
+    </select><br>
 
-        <label for="length">Length:</label>
-        <input type="text" id="length" name="length" required><br>
+    <label for="length">Length:</label>
+    <input type="text" id="length" name="length" required><br>
 
-        <label for="type">Type:</label>
-        <select id="type" name="type" required>
-            <option value="album">Album</option>
-            <option value="single">Single</option>
-            <option value="ep">EP</option>
-        </select><br>
+    <label for="type">Type:</label>
+    <select id="type" name="type" required>
+        <option value="album">Album</option>
+        <option value="single">Single</option>
+        <option value="ep">EP</option>
+    </select><br>
 
-        <label for="genre">Genre:</label>
-        <input type="text" id="genre" name="genre" required><br>
+    <label for="genre">Genre:</label>
+    <select id="genreDropdown" required>
+        <% @genres.each do |genre| %>
+            <option value="<%= genre %>"><%= genre %></option>
+        <% end %>
+    </select>
+    <button type="button" id="addGenre">Add genre</button>
 
-        <label for="release_date">Release Date:</label>
-        <input type="date" id="release_date" name="release_date" required><br>
+    <p>Genres: <span id="genreList"></span></p>
 
-        <label for="img">Upload artwork: </label>
-        <input type="file" id="release_artwork" name="release_artwork" accept="image/*"><br>
+    <label for="release_date">Release Date:</label>
+    <input type="date" id="release_date" name="release_date" required><br>
 
-        <button type="submit">Add release</button>
-    </form>
+    <label for="img">Upload artwork: </label>
+    <input type="file" id="release_artwork" name="release_artwork" accept="image/*"><br>
+
+    <button type="submit">Add release</button>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addGenreButton = document.getElementById('addGenre');
+    const genreDropdown = document.getElementById('genreDropdown');
+    const genreList = document.getElementById('genreList');
+
+    addGenreButton.addEventListener('click', function() {
+        const selectedGenre = genreDropdown.value;
+        const genreItems = genreList.querySelectorAll('.genreItem'); 
+        var genre_exists = false;
+        if (selectedGenre !== '') {
+            // Check if selectedGenre already exists in the genre list
+            genreItems.forEach(function(genreItem) {
+                if (genreItem.textContent === selectedGenre) {
+                    genre_exists = true;
+                }
+            });
+
+            if (!genre_exists) { 
+                const genreItem = document.createElement('span');
+                
+                // Add a line break 
+                genreList.appendChild(document.createElement('br'));
+
+                // Add the genre
+                genreItem.textContent = selectedGenre;
+                genreItem.classList.add('genreItem');
+                genreList.appendChild(genreItem);
+
+                // Add a cross for removal
+                const removeButton = document.createElement('span');
+                removeButton.textContent = ' ✖ ';
+                removeButton.classList.add('removeGenre');
+                removeButton.addEventListener('click', function() {
+                    genreItem.remove();
+                    removeButton.remove(); // Remove the cross when the genre is removed
+                });
+
+                genreList.appendChild(removeButton);
+            }
+        }
+    });
+
+    document.getElementById('addReleaseForm').addEventListener('submit', function() {
+        const genres = Array.from(document.querySelectorAll('.genreItem')).map(item => item.textContent);
+        const hiddenInput = document.createElement('input');
+        hiddenInput.setAttribute('type', 'hidden');
+        hiddenInput.setAttribute('name', 'genres');
+        hiddenInput.setAttribute('value', JSON.stringify(genres));
+        this.appendChild(hiddenInput);
+    });
+});
+</script>

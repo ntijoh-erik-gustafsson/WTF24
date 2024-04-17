@@ -3,6 +3,7 @@
     <div class="release-info">
         <h2>Title: <%= html_escape(@release_info["title"]) %></h2>
         <h2>Artist: <%= html_escape(Artists.get_artist_name_from_artist_id(@release_info["artist_id"])) %></h2>
+        <h2>Genres: <%= html_escape(@release_info["genre"]) %></h2>
 
         <% if @release_info["image_path"] %>
         <img src="<%= @release_info["image_path"] %>" alt="Release Artwork">
