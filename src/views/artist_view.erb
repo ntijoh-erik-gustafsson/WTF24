@@ -8,8 +8,9 @@
 <% end %>
 
 
-
-<% if !@releases.empty? %>
+<% if @releases.nil? || @releases.empty? %>
+    <p>No releases available. </p>
+<% else %>
     <h3>Releases:</h3>
     <% @releases.each do |release| %>
         <div>

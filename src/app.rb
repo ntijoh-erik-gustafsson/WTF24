@@ -97,7 +97,7 @@ class App < Sinatra::Base
     # --- REMOVE A RELEASE ---
     post '/release/remove/:id' do |id| 
         Releases.remove(id)
-        redirect "/"
+        redirect back
     end
 
     # ------
@@ -135,7 +135,7 @@ class App < Sinatra::Base
             Releases.update_with_image(id)
          end
             
-        redirect "/"
+         redirect back
     end
     # ------
     # --- VIEW A RELEASE ---
@@ -237,13 +237,13 @@ class App < Sinatra::Base
         # Check if the user is an admin or an user
         if (session[:role] == "admin")
             # Insert the artist data into the release database
-            artist_id = Artists.insert(id, name, bio, country, city, image_path)
+            artist_id = Artists.insert(name, bio, country, city, image_path)
             redirect "/artist/view/#{artist_id}"
 
         elsif (session[:role] == "user")
             # Insert the release data into the suggestion database
-            Artists.insert_suggestion(id, name, bio, country, city, image_path, username)
-            redirect "/suggestions"
+            Artists.insert_suggestion(name, bio, country, city, image_path, session[:username])
+            redirect "/"
         end
         
 
@@ -253,7 +253,7 @@ class App < Sinatra::Base
     # --- REMOVE AN ARTIST ---
     post '/artist/remove/:id' do |id| 
         Artists.remove(id)
-        redirect "/"
+        redirect back
     end
         
      # --- EDIT AN ARTIST ---
@@ -289,19 +289,22 @@ class App < Sinatra::Base
 
          end
             
-        redirect "/"
+         redirect back
     end
     # ------
     # --- VIEW AN ARTISTS ---
     get '/artist/view/:id' do |id|
-        Artists.find(id)
-        Releases.find(id)
+        @artist_info = Artists.find(id)
+        @releases = Releases.find(id)
 
         erb :artist_view
     end
 
     # --- APPROVE AN ARTIST ---
     post '/artist/suggestion/approve/:id' do |id|
+
+        # First retreive the data from the artist id
+        artist = Artist_suggestions.find(id)
 
         # Insert the extracted data into the artists table
         Artists.insert(artist['name'], artist['bio'], artist['country'], artist['city'], artist['image_path'])

@@ -80,11 +80,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('addReleaseForm').addEventListener('submit', function() {
-        // Add genre IDs to the form submission
         const hiddenInput = document.createElement('input');
         hiddenInput.setAttribute('type', 'hidden');
         hiddenInput.setAttribute('name', 'genres');
-        hiddenInput.setAttribute('value', JSON.stringify(genreListIds));
+        const genresWithoutQuotes = JSON.stringify(genreListIds.join(",")).replace(/"/g, '');
+        hiddenInput.setAttribute('value', genresWithoutQuotes);
         this.appendChild(hiddenInput);
     });
 });

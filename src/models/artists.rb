@@ -12,7 +12,7 @@ module Artists
         db.execute('SELECT * FROM artists ORDER BY popularity DESC LIMIT ?', amount)
     end
 
-    def self.insert(id, name, bio, country, city, image_path)
+    def self.insert(name, bio, country, city, image_path)
         query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?)'
         result = db.execute(query, name, bio, country, city, image_path)
         db.last_insert_row_id # Return the last inserted row ID
