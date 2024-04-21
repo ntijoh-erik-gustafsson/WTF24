@@ -46,7 +46,7 @@ module Artists
     end
 
     def self.search(keyword)
-        db.execute("SELECT * FROM artists WHERE name LIKE ?", "%#{@query}%")
+        db.execute("SELECT * FROM artists WHERE name LIKE ?", "%#{keyword}%")
     end
 
     def self.get_artist_name_from_artist_id(artist_id)

@@ -21,6 +21,7 @@ class App < Sinatra::Base
     end
     
     get '/' do
+        
         @hot_releases = Releases.most_popular(5)
         @top_releases = Releases.highest_reviewed(5)
 
@@ -104,6 +105,7 @@ class App < Sinatra::Base
     get '/release/edit/:id' do |id|
         @release_info = Releases.find(id) 
         @artists = Artists.all
+        @genres = Releases.get_genres()
 
         erb :release_edit
     end
@@ -329,11 +331,11 @@ class App < Sinatra::Base
     # --- SEARCH FOR A RELEASE OR ARTIST --- (As of right now one can only search for releases, this may be uodated in the future so also artists can be searched)
     get "/release/search/" do
         # Get the search query from params
-        query = params[:query]
+        @query = params[:query]
 
         # Perform the search based on the query 
-        @release_results = Releases.search(query)
-        @artist_results = Artists.search(query)
+        @release_results = Releases.search(@query)
+        @artist_results = Artists.search(@query)
 
         erb :search_result
 
@@ -441,13 +443,14 @@ class App < Sinatra::Base
 
         # Try to insert into the database
         begin
-            user_id = User.insert(username, password_hash)
+            user_id = User.insert(username, password_hash, role)
 
         rescue SQLite3::ConstraintException => e
             session[:error_message] = "Username is already taken"
             redirect '/register'
 
         rescue => e
+            puts(e.to_s)
             session[:error_message] = "An error occurred while processing your request"
             redirect '/register'
         end

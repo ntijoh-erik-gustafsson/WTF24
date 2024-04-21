@@ -27,7 +27,9 @@ module Releases
     end
 
     def self.most_popular(amount) 
-        db.execute('SELECT * FROM releases ORDER BY clicks DESC LIMIT ?', amount)
+        result = db.execute('SELECT * FROM releases ORDER BY clicks DESC LIMIT ?', amount)
+        result.empty? ? nil : result
+
     end
 
     def self.highest_reviewed(amount) 
@@ -37,14 +39,19 @@ module Releases
         ORDER BY AVG(review_rating) DESC
         LIMIT 5"    
 
-        db.execute(top_releases_query)
+        result = db.execute(top_releases_query)
+        result.empty? ? nil : result
 
     end
 
     def self.get_genres()
-        db.execute("SELECT name FROM genres").map { |row| row['name'] }
-
+        db.execute("SELECT * FROM genres")
     end
+
+    def self.get_genre_by_id(genre_id)
+        db.execute("SELECT name FROM genres WHERE id = ?", genre_id).first
+    end
+    
 
     def self.insert(title, artist_id, length, type, genre, release_date, image_path)
         query = 'INSERT INTO releases (title, artist_id, length, type, genre, release_date, image_path) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id'
@@ -58,7 +65,7 @@ module Releases
     end
 
     def self.search(keyword)
-        db.execute("SELECT * FROM releases WHERE title LIKE ?", "%#{@query}%")
+        db.execute("SELECT * FROM releases WHERE title LIKE ?", "%#{keyword}%")
 
     end
 

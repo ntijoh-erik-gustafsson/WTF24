@@ -4,7 +4,7 @@ module User
         db.execute('SELECT * FROM users WHERE username = ?', username).first
     end
 
-    def self.insert(username, password_hash)
+    def self.insert(username, password_hash, role)
         query = 'INSERT INTO users (role, username, password) VALUES (?, ?, ?)'
         result = db.execute(query, role, username, password_hash).first
         db.last_insert_row_id # Return the last inserted row ID

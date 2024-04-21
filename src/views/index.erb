@@ -3,69 +3,66 @@
 <div class="column-container">
     <div class="column">
         <h2>Hot Releases: </h2>
-        <% index = 1 %>
-        <% for release in @hot_releases %>
-            <div>
-                <p> <%= index.to_s + ". " %><%= html_escape(Artists.get_artist_name_from_artist_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
 
-                <form action='/release/view/<%= release["id"] %>' method='get'> 
-                    <button type="submit">VIEW</button>
-                </form>
+        <% if @hot_releases.nil? || @hot_releases.empty? %>
+            <p>No hot releases available. </p>
 
-                <% if session[:role] == 'admin' %>
-                    <form action='/release/remove/<%= release["id"] %>' method='post'> 
-                    <button type="submit">DELETE</button>
+        <% else %>
+            <% index = 1 %>
+            <% for release in @hot_releases %>
+                <div>
+                    <p> <%= index.to_s + ". " %><%= html_escape(Artists.get_artist_name_from_artist_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
+
+                    <form action='/release/view/<%= release["id"] %>' method='get'> 
+                        <button type="submit">VIEW</button>
                     </form>
 
-                    <form action='/release/edit/<%= release["id"] %>' method='get'> 
-                    <button type="submit">EDIT</button>
-                    </form>
-                <% end %>
-                <% index+=1 %>
-            </div>
+                    <% if session[:role] == 'admin' %>
+                        <form action='/release/remove/<%= release["id"] %>' method='post'> 
+                        <button type="submit">DELETE</button>
+                        </form>
 
+                        <form action='/release/edit/<%= release["id"] %>' method='get'> 
+                        <button type="submit">EDIT</button>
+                        </form>
+                    <% end %>
+                    <% index+=1 %>
+                </div>
+            <% end %>
         <% end %>
 
     </div>
 
     <div class="column">
         <h2>Top Rated Releases:</h2>
-        <% index = 1 %>
-        <% for release in @top_releases %>
-            <div>
-                <p><%= index.to_s + ". " %><%= html_escape(Artists.get_artist_name_from_artist_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
 
-                <form action='/release/view/<%= release["id"] %>' method='get'> 
-                    <button type="submit">VIEW</button>
-                </form>
+        <% if @top_releases.nil? || @top_releases.empty? %>
+            <p>No top rated releases available. </p>
 
-                <% if session[:role] == 'admin' %>
-                    <form action='/release/remove/<%= release["id"] %>' method='post'> 
-                        <button type="submit">DELETE</button>
+        <% else %>
+            <% index = 1 %>
+            <% for release in @top_releases %>
+                <div>
+                    <p><%= index.to_s + ". " %><%= html_escape(Artists.get_artist_name_from_artist_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
+
+                    <form action='/release/view/<%= release["id"] %>' method='get'> 
+                        <button type="submit">VIEW</button>
                     </form>
 
-                    <form action='/release/edit/<%= release["id"] %>' method='get'> 
-                        <button type="submit">EDIT</button>
-                    </form>
-                <% end %>
-                
-                <% index += 1 %>
-            </div>
+                    <% if session[:role] == 'admin' %>
+                        <form action='/release/remove/<%= release["id"] %>' method='post'> 
+                            <button type="submit">DELETE</button>
+                        </form>
+
+                        <form action='/release/edit/<%= release["id"] %>' method='get'> 
+                            <button type="submit">EDIT</button>
+                        </form>
+                    <% end %>
+                    
+                    <% index += 1 %>
+                </div>
+            <% end %>
         <% end %>
     </div>
 </div>
 
-
-
-    <!--
-        <details>
-            <summary>More info</summary>
-            Name: <%= release[1] %> <br>
-            Artist: <%= release[2] %> <br>
-            Length: <%= release[3] %> <br>
-            Rating: <%= release[4] %> <br>
-            Type: <%= release[5] %> <br>
-            Genre: <%= release[6] %> <br>
-            Release date: <%= release[7] %> 
-        </details>
-    -->   

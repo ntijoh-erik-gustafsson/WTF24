@@ -23,7 +23,8 @@
     <label for="genre">Genre:</label>
     <select id="genreDropdown" required>
         <% @genres.each do |genre| %>
-            <option value="<%= genre %>"><%= genre %></option>
+            <% puts(genre) %>
+            <option value="<%= genre["id"]%>"><%= genre["name"] %></option>
         <% end %>
     </select>
     <button type="button" id="addGenre">Add genre</button>
@@ -44,50 +45,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const addGenreButton = document.getElementById('addGenre');
     const genreDropdown = document.getElementById('genreDropdown');
     const genreList = document.getElementById('genreList');
+    const genreListIds = []; // Array to store genre IDs
 
     addGenreButton.addEventListener('click', function() {
-        const selectedGenre = genreDropdown.value;
-        const genreItems = genreList.querySelectorAll('.genreItem'); 
-        var genre_exists = false;
-        if (selectedGenre !== '') {
-            // Check if selectedGenre already exists in the genre list
-            genreItems.forEach(function(genreItem) {
-                if (genreItem.textContent === selectedGenre) {
-                    genre_exists = true;
+        const selectedGenreId = genreDropdown.value; // Get the selected genre ID
+        const selectedGenreName = genreDropdown.options[genreDropdown.selectedIndex].text; // Get the selected genre name
+
+        // Check if the genre is already in the list
+        if (!genreListIds.includes(selectedGenreId)) {
+            // Create genre item
+            const genreItem = document.createElement('span');
+            genreItem.textContent = selectedGenreName;
+            genreItem.classList.add('genreItem');
+            genreList.appendChild(genreItem);
+
+            // Create remove button
+            const removeButton = document.createElement('span');
+            removeButton.textContent = ' ✖ ';
+            removeButton.classList.add('removeGenre');
+            removeButton.addEventListener('click', function() {
+                genreItem.remove();
+                removeButton.remove();
+                // Remove the genre ID from the array when removed
+                const index = genreListIds.indexOf(selectedGenreId);
+                if (index !== -1) {
+                    genreListIds.splice(index, 1);
                 }
             });
+            genreList.appendChild(removeButton);
 
-            if (!genre_exists) { 
-                const genreItem = document.createElement('span');
-                
-                // Add a line break 
-                genreList.appendChild(document.createElement('br'));
-
-                // Add the genre
-                genreItem.textContent = selectedGenre;
-                genreItem.classList.add('genreItem');
-                genreList.appendChild(genreItem);
-
-                // Add a cross for removal
-                const removeButton = document.createElement('span');
-                removeButton.textContent = ' ✖ ';
-                removeButton.classList.add('removeGenre');
-                removeButton.addEventListener('click', function() {
-                    genreItem.remove();
-                    removeButton.remove(); // Remove the cross when the genre is removed
-                });
-
-                genreList.appendChild(removeButton);
-            }
+            // Add the genre ID to the array
+            genreListIds.push(selectedGenreId);
         }
     });
 
     document.getElementById('addReleaseForm').addEventListener('submit', function() {
-        const genres = Array.from(document.querySelectorAll('.genreItem')).map(item => item.textContent);
+        // Add genre IDs to the form submission
         const hiddenInput = document.createElement('input');
         hiddenInput.setAttribute('type', 'hidden');
         hiddenInput.setAttribute('name', 'genres');
-        hiddenInput.setAttribute('value', JSON.stringify(genres));
+        hiddenInput.setAttribute('value', JSON.stringify(genreListIds));
         this.appendChild(hiddenInput);
     });
 });
