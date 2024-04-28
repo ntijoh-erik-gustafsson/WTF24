@@ -16,14 +16,14 @@ module Releases
         db.execute('DELETE FROM releases WHERE id = ?', id)
     end
 
-    def self.update_without_image(id)
-        query = "UPDATE releases SET title = ?, artist_id = ?, length = ?, type = ?, genre = ?, release_date = ? WHERE id = ?"
-        result = db.execute(query, title, artist_id, length, type, genre, release_date, id)
+    def self.update_without_image(title, length, type, genre, release_date, id)
+        query = "UPDATE releases SET title = ?, length = ?, type = ?, genre = ?, release_date = ? WHERE id = ?"
+        result = db.execute(query, title, length, type, genre, release_date, id)
     end
 
-    def self.update_with_image(id)
-        query = "UPDATE releases SET title = ?, artist_id = ?, length = ?, rating = ?, type = ?, genre = ?, release_date = ?, image_path = ? WHERE id = ?"
-        result = db.execute(query, title, artist_id, length, rating, type, genre, release_date, "/artwork/" + artwork_file[:filename], id)
+    def self.update_with_image(title, length, type, genre, release_date, artwork_file, id)
+        query = "UPDATE releases SET title = ?, length = ?, rating = ?, type = ?, genre = ?, release_date = ?, image_path = ? WHERE id = ?"
+        result = db.execute(query, title, length, rating, type, genre, release_date, "/artwork/" + artwork_file[:filename], id)
     end
 
     def self.most_popular(amount) 
@@ -49,7 +49,9 @@ module Releases
     end
 
     def self.get_genre_by_id(genre_id)
-        db.execute("SELECT name FROM genres WHERE id = ?", genre_id).first
+        result = db.execute("SELECT name FROM genres WHERE id = ?", genre_id).first
+        result["name"] if result
+
     end
     
 

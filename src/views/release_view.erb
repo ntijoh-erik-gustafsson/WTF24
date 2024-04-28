@@ -5,7 +5,7 @@
         <h2>Artist: <%= html_escape(Artists.get_artist_name_from_artist_id(@release_info["artist_id"])) %></h2>
         <h2>Genres:</h2>
         <% @release_info["genre"].split(",").each do |genre_id| %>
-            <p><%= html_escape(Releases.get_genre_by_id(genre_id)["name"]) %></p>
+            <p><%= html_escape(Releases.get_genre_by_id(genre_id)) %></p>
         <% end %>
 
         <% if @release_info["image_path"] %>

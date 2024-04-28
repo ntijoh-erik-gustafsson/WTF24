@@ -1,5 +1,6 @@
+<script src="/js/script.js"></script>
 <h2>Add release:</h2>
-<form id="addReleaseForm" action="/release/add" method="post" enctype="multipart/form-data">
+<form id="release_form" action="/release/add" method="post" enctype="multipart/form-data">
     <label for="name">Title:</label>
     <input type="text" id="title" name="title" required><br>
 
@@ -21,15 +22,15 @@
     </select><br>
 
     <label for="genre">Genre:</label>
-    <select id="genreDropdown" required>
+    <select id="genre_dropdown" required>
         <% @genres.each do |genre| %>
             <% puts(genre) %>
             <option value="<%= genre["id"]%>"><%= genre["name"] %></option>
         <% end %>
     </select>
-    <button type="button" id="addGenre">Add genre</button>
+    <button type="button" id="add_genre">Add genre</button>
 
-    <p>Genres: <span id="genreList"></span></p>
+    <p>Genres: <span id="genre_list"></span></p>
 
     <label for="release_date">Release Date:</label>
     <input type="date" id="release_date" name="release_date" required><br>
@@ -40,52 +41,3 @@
     <button type="submit">Add release</button>
 </form>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const addGenreButton = document.getElementById('addGenre');
-    const genreDropdown = document.getElementById('genreDropdown');
-    const genreList = document.getElementById('genreList');
-    const genreListIds = []; // Array to store genre IDs
-
-    addGenreButton.addEventListener('click', function() {
-        const selectedGenreId = genreDropdown.value; // Get the selected genre ID
-        const selectedGenreName = genreDropdown.options[genreDropdown.selectedIndex].text; // Get the selected genre name
-
-        // Check if the genre is already in the list
-        if (!genreListIds.includes(selectedGenreId)) {
-            // Create genre item
-            const genreItem = document.createElement('span');
-            genreItem.textContent = selectedGenreName;
-            genreItem.classList.add('genreItem');
-            genreList.appendChild(genreItem);
-
-            // Create remove button
-            const removeButton = document.createElement('span');
-            removeButton.textContent = ' ✖ ';
-            removeButton.classList.add('removeGenre');
-            removeButton.addEventListener('click', function() {
-                genreItem.remove();
-                removeButton.remove();
-                // Remove the genre ID from the array when removed
-                const index = genreListIds.indexOf(selectedGenreId);
-                if (index !== -1) {
-                    genreListIds.splice(index, 1);
-                }
-            });
-            genreList.appendChild(removeButton);
-
-            // Add the genre ID to the array
-            genreListIds.push(selectedGenreId);
-        }
-    });
-
-    document.getElementById('addReleaseForm').addEventListener('submit', function() {
-        const hiddenInput = document.createElement('input');
-        hiddenInput.setAttribute('type', 'hidden');
-        hiddenInput.setAttribute('name', 'genres');
-        const genresWithoutQuotes = JSON.stringify(genreListIds.join(",")).replace(/"/g, '');
-        hiddenInput.setAttribute('value', genresWithoutQuotes);
-        this.appendChild(hiddenInput);
-    });
-});
-</script>

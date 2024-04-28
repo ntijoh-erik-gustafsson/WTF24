@@ -1,105 +1,56 @@
-<script src="/js/script.js"></script>
-<h2>Edit <%= @release_info["title"]%>:</h2>
-<form action="/release/edit/<%= @release_info["id"] %>" method="post" enctype="multipart/form-data">
-        <label for="name">Title:</label>
-        <input type="text" id="title" name="title" value="<%= html_escape(@release_info["title"]) %>" required><br>
+<% if session[:role] == "admin" %>
+    <h2>Edit <%= @release_info["title"]%>:</h2>
+    <form action="/release/edit/<%= @release_info["id"] %>" id="release_form" method="post" enctype="multipart/form-data">
+            <label for="name">Title:</label>
+            <input type="text" id="title" name="title" value="<%= html_escape(@release_info["title"]) %>" required><br>
 
-        <label for="artist">Artist:</label>
-        <select id="artist" name="artist_id" required>
-            <% @artists.each do |artist| %>
-                <option value="<%= artist['id'] %>" <%= 'selected' if artist['id'] == @release_info['artist_id'] %>><%= artist['name'] %></option>
-            <% end %>
-        </select><br>
+            <label for="artist">Artist:</label>
+            <select id="artist" name="artist_id" required>
+                <% @artists.each do |artist| %>
+                    <option value="<%= artist['id'] %>" <%= 'selected' if artist['id'] == @release_info['artist_id'] %>><%= artist['name'] %></option>
+                <% end %>
+            </select><br>
 
-        <label for="length">Length:</label>
-        <input type="text" id="length" name="length" value="<%=  html_escape(@release_info["length"])  %>" required><br>
+            <label for="length">Length:</label>
+            <input type="text" id="length" name="length" value="<%=  html_escape(@release_info["length"])  %>" required><br>
 
-        <label for="type">Type:</label>
-        <select id="type" name="type" required>
-            <option value="album" <%= 'selected' if @release_info["type"] == 'album' %>>Album</option>
-            <option value="single" <%= 'selected' if @release_info["type"] == 'single' %>>Single</option>
-            <option value="ep" <%= 'selected' if @release_info["type"] == 'ep' %>>EP</option>
-        </select><br>
+            <label for="type">Type:</label>
+            <select id="type" name="type" required>
+                <option value="album" <%= 'selected' if @release_info["type"] == 'album' %>>Album</option>
+                <option value="single" <%= 'selected' if @release_info["type"] == 'single' %>>Single</option>
+                <option value="ep" <%= 'selected' if @release_info["type"] == 'ep' %>>EP</option>
+            </select><br>
 
 
         <label for="genre">Genre:</label>
-            <select id="genreDropdown" required>
-                <% @genres.each do |genre| %>
-                    <option value="<%= genre %>"><%= genre %></option>
+        <select id="genre_dropdown" required>
+            <% @genres.each do |genre| %>
+                <option value="<%= genre["id"]%>"><%= genre["name"] %></option>
+            <% end %>
+        </select>
+        <button type="button" id="add_genre">Add genre</button>
+
+            <p>Genres:<p>
+            <div id="genre_list">
+                <% ((@release_info["genre"].split(","))).each do |i| %>
+                    <div id="genre_<%= i.to_i %>">
+                        <p><%= Releases.get_genre_by_id(i)%> </p>
+                        <button type="button" class="remove_genre">X</button>
+                    </div>
                 <% end %>
-            </select>
-        <button type="button" id="addGenre">Add genre</button>
+            </div>
 
-    <% @release_info["genre"].split(",").each do |genre| %>
+            <label for="release_date">Release Date:</label>
+            <input type="date" id="release_date" name="release_date" value="<%= @release_info["release_date"]%>" required><br>
 
-        <p>Genres: <span id="genreList"></span></p>
+            <label for="img">Edit artwork: </label>
+            <input type="file" id="release_artwork" name="release_artwork" accept="image/*"><br>
+            <img src="<%= @release_info["image_path"] %>" alt="Release Artwork" style="max-width: 200px;">
 
-        <label for="release_date">Release Date:</label>
-        <input type="date" id="release_date" name="release_date" value="<%= @release_info["release_date"]%>" required><br>
+            <button type="submit">Update release</button>
+        
+        </form>
 
-        <label for="img">Edit artwork: </label>
-        <input type="file" id="release_artwork" name="release_artwork" accept="image/*"><br>
-        <img src="<%= @release_info["image_path"] %>" alt="Release Artwork" style="max-width: 200px;">
+        <script src="/js/script.js"></script>
 
-        <button type="submit">Update release</button>
-    </form>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const addGenreButton = document.getElementById('addGenre');
-    const genreDropdown = document.getElementById('genreDropdown');
-    const genreList = document.getElementById('genreList');
-
-    // Function to add a genre item to the genre list
-    function addGenreItem(genre) {
-        const genreItem = document.createElement('span');
-        genreItem.textContent = genre;
-        genreItem.classList.add('genreItem');
-        genreList.appendChild(genreItem);
-
-        // Add a remove button
-        const removeButton = document.createElement('span');
-        removeButton.textContent = ' ✖ ';
-        removeButton.classList.add('removeGenre');
-        removeButton.addEventListener('click', function() {
-            genreItem.remove();
-            removeButton.remove();
-        });
-        genreList.appendChild(removeButton);
-    }
-
-    // Pre-fill the genre list with genres from @release_info["genre"]
-    const releaseGenres = <%= @release_info["genre"].to_json %>;
-    releaseGenres.forEach(function(genre) {
-        addGenreItem(genre);
-    });
-
-    // Event listener for adding a new genre
-    addGenreButton.addEventListener('click', function() {
-        const selectedGenre = genreDropdown.value;
-        const genreItems = genreList.querySelectorAll('.genreItem');
-        let genreExists = false;
-
-        // Check if the selected genre already exists in the list
-        genreItems.forEach(function(genreItem) {
-            if (genreItem.textContent === selectedGenre) {
-                genreExists = true;
-            }
-        });
-
-        // Add the selected genre if it doesn't exist
-        if (!genreExists && selectedGenre !== '') {
-            addGenreItem(selectedGenre);
-        }
-    });
-
-    // Form submission handler to include the genres in form data
-    document.getElementById('addReleaseForm').addEventListener('submit', function() {
-        const genres = Array.from(document.querySelectorAll('.genreItem')).map(item => item.textContent);
-        const hiddenInput = document.createElement('input');
-        hiddenInput.setAttribute('type', 'hidden');
-        hiddenInput.setAttribute('name', 'genres');
-        hiddenInput.setAttribute('value', JSON.stringify(genres));
-        this.appendChild(hiddenInput);
-    });
-});
+<% end %>

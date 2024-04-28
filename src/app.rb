@@ -111,18 +111,14 @@ class App < Sinatra::Base
     end
 
     post '/release/edit/:id' do |id|
-        title = params["title"]
-        artist_id = params["artist_id"]
-        length = params["length"]
-        type = params["type"]
-        genre = params["genre"]
-        release_date = params["release_date"]
         artwork_file = params["release_artwork"]
 
         # First check if artwork file is empty since its not neccesarry for the user to update, if it is --> then just update the rest of the information
         if artwork_file == nil
-            Releases.update_without_image(id)
+            Releases.update_without_image(params["title"], params["length"], params["type"], params["genres"], params["release_date"], id)
         else 
+
+            puts("artwork file not nil")
 
             # [to-do] Remove the old image
 
@@ -132,10 +128,10 @@ class App < Sinatra::Base
             end
 
             # Update the database        
-            Releases.update_with_image(id)
+            Releases.update_with_image(params["title"], params["length"], params["type"], params["genres"], params["release_date"], params["release_artwork"], id)
          end
             
-         redirect back
+         redirect "/release/view/" + id
     end
     # ------
     # --- VIEW A RELEASE ---
@@ -257,8 +253,8 @@ class App < Sinatra::Base
     end
         
      # --- EDIT AN ARTIST ---
-     get '/artist/edit/:id' do |id|
-        Artists.find(id)
+    get '/artist/edit/:id' do |id|
+        @artist_info = Artists.find(id)
         erb :artist_edit
     end
 
@@ -272,7 +268,7 @@ class App < Sinatra::Base
 
         # First check if artwork file is empty since its not neccesarry for the user to update, if it is --> then just update the rest of the information
         if logo_file == nil
-            Artists.update_without_image(id, name, bio, country, city, image_path)
+            Artists.update_without_image(id, name, bio, country, city)
         else 
 
             # [to-do] Remove the old image
@@ -289,7 +285,7 @@ class App < Sinatra::Base
 
          end
             
-         redirect back
+         redirect "/"
     end
     # ------
     # --- VIEW AN ARTISTS ---
