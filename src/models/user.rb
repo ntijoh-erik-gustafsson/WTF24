@@ -11,7 +11,6 @@ module User
 
     end
 
-
     def self.db 
         if @db == nil
             @db = SQLite3::Database.new('./db/music.sqlite')

@@ -19,9 +19,8 @@ class App < Sinatra::Base
     def html_escape(text)
         Rack::Utils.escape_html(text)
     end
-    
-    get '/' do
-        
+
+    get '/' do  
         @hot_releases = Releases.most_popular(5)
         @top_releases = Releases.highest_reviewed(5)
 
@@ -45,51 +44,30 @@ class App < Sinatra::Base
     get '/release/add' do
         # First check if the user is logged in
         if session[:username]
+
+            # Retrieve all the artists and genres
             @artists = Artists.all
             @genres = Releases.get_genres
+
+            # Redirect to the erb file for adding a release
             erb :release_add
             
         else
+            # Otherwise redirect back to the index page
             redirect '/'
         end
     end
 
     post '/release/add' do
-        id = params["id"]
-        title = params["title"]
-        artist_id = params["artist_id"]
-        length = params["length"]
-        type = params["type"]
-        genres = params["genres"]
-        release_date = params["release_date"]
-        artwork_file = params["release_artwork"]
-
-        puts(artist_id.to_s)
-        puts("----")
-
-        # Check if there is a file uploaded
-        if !(artwork_file == nil)
-            # Save the uploaded file to the server
-            File.open('public/artwork/' + artwork_file[:filename], "w") do |f|
-                f.write(artwork_file[:tempfile].read)
-            end
-            image_path = "/artwork/" + artwork_file[:filename]
-            puts(image_path)
-        else
-            image_path = nil
-            puts("No bloody image path")
-        end
-
-
         # Check if the user is an admin or an user
         if (session[:role] == "admin")
             # Insert the release data into the release database
-            release_id = Releases.insert(title, artist_id, length, type, genres, release_date, image_path)
+            release_id = Releases.insert(params["title"], params["artist_id"], params["length"], params["type"], params["genres"], params["release_date"], params["release_artwork"])
             redirect "/release/view/#{release_id}"
 
         elsif (session[:role] == "user")
             # Insert the release data into the suggestion database
-            Release_suggestions.insert(title, artist_id, length, type, genres, release_date, image_path, session[:username])
+            Release_suggestions.insert(params["title"], params["artist_id"], params["length"], params["type"], params["genres"], params["release_date"], params["release_artwork"], session[:username])
             redirect "/"
         end
     end
