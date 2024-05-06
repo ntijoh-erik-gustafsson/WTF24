@@ -13,7 +13,6 @@ class App < Sinatra::Base
     LOGIN_COOLDOWN = 60
     
     @@login_attempts = Hash.new { |hash, key|hash[key] = {attempts: 0, last_attempt: Time.now - LOGIN_COOLDOWN - 1}}
-    
 
     # Function to protect against html attacks (to prevent users from typing in javascript to be executed when i print out stuff)
     def html_escape(text)
@@ -89,26 +88,7 @@ class App < Sinatra::Base
     end
 
     post '/release/edit/:id' do |id|
-        artwork_file = params["release_artwork"]
-
-        # First check if artwork file is empty since its not neccesarry for the user to update, if it is --> then just update the rest of the information
-        if artwork_file == nil
-            Releases.update_without_image(params["title"], params["length"], params["type"], params["genres"], params["release_date"], id)
-        else 
-
-            puts("artwork file not nil")
-
-            # [to-do] Remove the old image
-
-            # Save the uploaded file to the server
-            File.open('public/artwork/' + artwork_file[:filename], "w") do |f|
-                f.write(artwork_file[:tempfile].read)
-            end
-
-            # Update the database        
-            Releases.update_with_image(params["title"], params["length"], params["type"], params["genres"], params["release_date"], params["release_artwork"], id)
-         end
-            
+        Releases.update(params["title"], params["length"], params["type"], params["genres"], params["release_date"], params["release_artwork"], id)    
          redirect "/release/view/" + id
     end
     # ------
@@ -116,18 +96,7 @@ class App < Sinatra::Base
     get '/release/view/:id' do |id|
         @release_info = Releases.find(id)
         @review_info = Reviews.find_reviews_by_release_id(id)
-      
-        # Calculate the total rating of the release
-        total_rating = 0
-        count = 0
-        unless @review_info.nil? || @review_info.empty?
-          @review_info.each do |review|
-            total_rating += review['review_rating']
-            count += 1
-          end
-        end
-      
-        @total_rating = count == 0 ? "None" : (total_rating / count).round(2)
+        @total_rating = Reviews.calculate_total_rating(@review_info) 
       
         # Increase a click for the release in the database
         Releases.increase_click(id)
@@ -140,9 +109,6 @@ class App < Sinatra::Base
       
     # --- REVIEW A RELEASE ---
     post '/release/review/:id' do |release_id| 
-        review_rating = params["rating"]
-        review_text = params["review_text"]
-
         # First check if a user has posted a review, if so, prevent user from posting again
         existing_review = Reviews.check_if_exist(session[:username], release_id)
 
@@ -151,7 +117,7 @@ class App < Sinatra::Base
             redirect "/release/view/#{release_id}"
         end
         
-        Reviews.insert(release_id, review_rating, review_text, session[:username])
+        Reviews.insert(release_id, params["rating"], params["review_text"], session[:username])
         redirect "/release/view/#{release_id}"
     end
 
@@ -190,36 +156,16 @@ class App < Sinatra::Base
     end
 
     post '/artist/add' do
-        id = params["id"]
-        name = params["name"]
-        bio = params["bio"]
-        country = params["country"]
-        city = params["city"]
-        logo_file = params["logo"]
-
-        # Check if there is a file uploaded
-        if !(logo_file == nil)
-            # Save the uploaded file to the server
-            File.open('public/artwork/' + logo_file[:filename], "w") do |f|
-                f.write(logo_file[:tempfile].read)
-            end
-            image_path = "/artwork/" + logo_file[:filename]
-         else
-            image_path = nil
-        end
-
         # Check if the user is an admin or an user
         if (session[:role] == "admin")
             # Insert the artist data into the release database
-            artist_id = Artists.insert(name, bio, country, city, image_path)
+            artist_id = Artists.insert(params["name"], params["bio"], params["country"], params["city"], params["logo"])
             redirect "/artist/view/#{artist_id}"
 
         elsif (session[:role] == "user")
             # Insert the release data into the suggestion database
-            Artists.insert_suggestion(name, bio, country, city, image_path, session[:username])
-            redirect "/"
-        end
-        
+            Artists.insert_suggestion(params["name"], params["bio"], params["country"], params["city"], params["logo"], session[:username])
+        end        
 
         redirect "/"
     end

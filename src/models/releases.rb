@@ -16,11 +16,33 @@ module Releases
         db.execute('DELETE FROM releases WHERE id = ?', id)
     end
 
-    def self.update_without_image(title, length, type, genre, release_date, id)
-        query = "UPDATE releases SET title = ?, length = ?, type = ?, genre = ?, release_date = ? WHERE id = ?"
-        result = db.execute(query, title, length, type, genre, release_date, id)
-    end
+    def self.update(title, length, type, genre, release_date, artwork_file, id)        
+        # First check if artwork file is empty since it's not necessary for the user to update. If it is, then just update the rest of the information
+        if artwork_file.nil?
+                query = "UPDATE releases SET title = ?, length = ?, type = ?, genre = ?, release_date = ? WHERE id = ?"
+                result = db.execute(query, title, length, type, genre, release_date, id)
+        else
+            # Retrieve the old image path from the database
+            query = "SELECT artwork_file FROM releases WHERE id = ?"
+            old_image_path = db.execute(query, id).first["artwork_file"] if artwork_file
 
+            # Delete the old image file if it exists
+            if old_image_path && File.exist?("public/#{old_image_path}")
+                File.delete("public/#{old_image_path}")
+            end
+    
+            # Save the uploaded file to the server
+            File.open('public/artwork/' + artwork_file[:filename], "w") do |f|
+                f.write(artwork_file[:tempfile].read)
+            end
+    
+            # Update the database with the new image path
+            query = "UPDATE releases SET title = ?, length = ?, type = ?, genre = ?, release_date = ? WHERE id = ?"
+            result = db.execute(query, title, length, type, genre, release_date, id)
+        end
+    end
+    
+    
     def self.update_with_image(title, length, type, genre, release_date, artwork_file, id)
         query = "UPDATE releases SET title = ?, length = ?, rating = ?, type = ?, genre = ?, release_date = ?, image_path = ? WHERE id = ?"
         result = db.execute(query, title, length, rating, type, genre, release_date, "/artwork/" + artwork_file[:filename], id)

@@ -12,16 +12,60 @@ module Artists
         db.execute('SELECT * FROM artists ORDER BY popularity DESC LIMIT ?', amount)
     end
 
-    def self.insert(name, bio, country, city, image_path)
-        query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?)'
-        result = db.execute(query, name, bio, country, city, image_path)
+    def self.insert(name, bio, country, city, logo_file, suggestion)
+        if !suggestion
+            if !(logo_file.nil?)
+                filename = logo_file[:filename]
+                filepath = 'public/artwork/' + filename
+        
+                # Check if the file doesn't exist
+                unless File.exist?(filepath)
+                    # Save the uploaded file to the server
+                    File.open(filepath, "w") do |f|
+                        f.write(logo_file[:tempfile].read)
+                    end
+                end
+        
+                # Get the image path
+                image_path = "/artwork/" + filename
+        
+                # Upload the artist to the database
+                query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?)'
+                result = db.execute(query, name, bio, country, city, image_path)
+            else
+                # Upload the artist to the database without image path
+                query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?)'
+                result = db.execute(query, name, bio, country, city, nil)
+            end
+        else
+            query = 'INSERT INTO artists (name, bio, country, city, image_path) VALUES (?, ?, ?, ?, ?)'
+            result = db.execute(query, name, bio, country, city, image_path)
+        end
+    
         db.last_insert_row_id # Return the last inserted row ID
     end
+        
+    def self.insert_suggestion(name, bio, country, city, logo_file, username)
+        # Check if there is a file uploaded
+        if !(logo_file == nil)
+            # Save the uploaded file to the server
+            File.open('public/artwork/' + logo_file[:filename], "w") do |f|
+                f.write(logo_file[:tempfile].read)
+            end
 
-    def self.insert_suggestion(id, name, bio, country, city, image_path, username)
-        query = 'INSERT INTO artist_suggestions (name, bio, country, city, image_path, username) VALUES (?, ?, ?, ?, ?, ?)'
-        result = db.execute(query, name, bio, country, city, image_path, username)
-    end
+            # Get the image path
+            image_path = "/artwork/" + logo_file[:filename]
+
+            # Upload the artist to the database
+            query = 'INSERT INTO artist_suggestions (name, bio, country, city, image_path, username) VALUES (?, ?, ?, ?, ?, ?)'
+            result = db.execute(query, name, bio, country, city, image_path, username)
+
+        else
+            # Upload the artist to the database
+            query = 'INSERT INTO artist_suggestions (name, bio, country, city, username) VALUES (?, ?, ?, ?, ?)'
+            result = db.execute(query, name, bio, country, city, username)
+        end
+    end  
 
     def self.remove(id)
         # Remove releases associated with the artist

@@ -1,3 +1,4 @@
+<% if session[:user_id] %>
 <h2>Add artist:</h2>
 <form action="/artist/add" method="post" enctype="multipart/form-data">
     <label for="name">Name:</label>
@@ -18,3 +19,4 @@
 
     <button type="submit">Add artist</button>
 </form>
+<% end %>

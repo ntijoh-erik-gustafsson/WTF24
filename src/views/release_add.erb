@@ -1,3 +1,4 @@
+<% if session[:user_id] %>
 <script src="/js/script.js"></script>
 <h2>Add release:</h2>
 <form id="release_form" action="/release/add" method="post" enctype="multipart/form-data">
@@ -41,3 +42,4 @@
     <button type="submit">Add release</button>
 </form>
 
+<% end %>
