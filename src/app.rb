@@ -8,12 +8,6 @@ require_relative 'models/reviews'
 class App < Sinatra::Base
     enable :sessions
 
-    # Anti-bruteforce login configuration
-    MAXIMUM_LOGIN_ATTEMPTS = 5
-    LOGIN_COOLDOWN = 60
-    
-    @@login_attempts = Hash.new { |hash, key|hash[key] = {attempts: 0, last_attempt: Time.now - LOGIN_COOLDOWN - 1}}
-
     # Function to protect against html attacks (to prevent users from typing in javascript to be executed when i print out stuff)
     def html_escape(text)
         Rack::Utils.escape_html(text)
@@ -89,7 +83,8 @@ class App < Sinatra::Base
 
     post '/release/edit/:id' do |id|
         Releases.update(params["title"], params["length"], params["type"], params["genres"], params["release_date"], params["release_artwork"], id)    
-         redirect "/release/view/" + id
+        
+        redirect "/release/view/" + id
     end
     # ------
     # --- VIEW A RELEASE ---
@@ -159,12 +154,12 @@ class App < Sinatra::Base
         # Check if the user is an admin or an user
         if (session[:role] == "admin")
             # Insert the artist data into the release database
-            artist_id = Artists.insert(params["name"], params["bio"], params["country"], params["city"], params["logo"])
+            artist_id = Artists.insert(params["name"], params["bio"], params["country"], params["city"], params["logo"], false)
             redirect "/artist/view/#{artist_id}"
 
         elsif (session[:role] == "user")
             # Insert the release data into the suggestion database
-            Artists.insert_suggestion(params["name"], params["bio"], params["country"], params["city"], params["logo"], session[:username])
+            Artist_suggestions.insert(params["name"], params["bio"], params["country"], params["city"], params["logo"], session[:username])
         end        
 
         redirect "/"
@@ -183,33 +178,8 @@ class App < Sinatra::Base
     end
 
     post '/artist/edit/:id' do |id|
-        id = params["id"]
-        name = params["name"]
-        bio = params["bio"]
-        country = params["country"]
-        city = params["city"]
-        logo_file = params["logo"]
-
-        # First check if artwork file is empty since its not neccesarry for the user to update, if it is --> then just update the rest of the information
-        if logo_file == nil
-            Artists.update_without_image(id, name, bio, country, city)
-        else 
-
-            # [to-do] Remove the old image
-
-            # Save the uploaded file to the server
-            image_path = "/logos/" + logo_file[:filename]
-
-            File.open('public/' + image_path, "w") do |f|
-                f.write(logo_file[:tempfile].read)
-            end
-
-            # Update the database        
-            Artists.update_with_image(id, name, bio, country, city, image_path)
-
-         end
-            
-         redirect "/"
+        Artists.update(params["id"], params["name"], params["bio"], params["country"], params["city"], params["logo"])
+        redirect "/artist/view/" + id
     end
     # ------
     # --- VIEW AN ARTISTS ---
@@ -227,7 +197,7 @@ class App < Sinatra::Base
         artist = Artist_suggestions.find(id)
 
         # Insert the extracted data into the artists table
-        Artists.insert(artist['name'], artist['bio'], artist['country'], artist['city'], artist['image_path'])
+        Artists.insert(artist['name'], artist['bio'], artist['country'], artist['city'], artist['image_path'], true)
         
         # Retrieve data from the suggestions table with the specified ID
         Artist_suggestions.find(id)
@@ -287,13 +257,7 @@ class App < Sinatra::Base
         username = params["username"]
         password = params["password"]
 
-        # Check if the cooldown time has passed
-        if (Time.now - @@login_attempts[username][:last_attempt] > LOGIN_COOLDOWN)
-            @@login_attempts[username][:attempts] = 0
-        end
-
-        # Check the amount of login attempts
-        if (@@login_attempts[username][:attempts] >= MAXIMUM_LOGIN_ATTEMPTS)
+        if !(User.check_login())
             session[:error_message] = "Too many login attempts. Please try again later."
             redirect "/login"
         end

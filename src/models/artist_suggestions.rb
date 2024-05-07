@@ -8,9 +8,23 @@ module Artist_suggestions
         db.execute('SELECT * FROM artist_suggestions WHERE id = ?', id).first
     end
 
-    def self.insert(title, artist_id, length, type, genre, release_date, image_path)
-        query = 'INSERT INTO artist_suggestions (title, artist_id, length, type, genre, release_date, image_path, username) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id'        
-        result = db.execute(query, title, artist_id, length, type, genre, release_date, image_path, session[:username]).first 
+    def self.insert(name, bio, country, city, logo_file, username)
+        # Check if there is an image in the form
+         if !(logo_file == nil)
+
+            # Save the uploaded file to the server
+            File.open('public/artwork/' + logo_file[:filename], "w") do |f|
+                f.write(logo_file[:tempfile].read)
+            end
+
+            # Get the image path
+            image_path = "/artwork/" + logo_file[:filename]
+        else
+            image_path = nil
+        end
+
+        query = 'INSERT INTO artist_suggestions (name, bio, country, city, image_path, username) VALUES (?, ?, ?, ?, ?, ?) RETURNING id'        
+        result = db.execute(query, name, bio, country, city, image_path, username).first 
 
     end
 
