@@ -13,6 +13,7 @@ class App < Sinatra::Base
         Rack::Utils.escape_html(text)
     end
 
+    # Handle the landing page get request
     get '/' do  
         @hot_releases = Releases.most_popular(5)
         @top_releases = Releases.highest_reviewed(5)
@@ -257,52 +258,34 @@ class App < Sinatra::Base
         username = params["username"]
         password = params["password"]
 
-        if !(User.check_login())
+        # Check the login cooldown
+        if !(User.check_cooldown(username))
             session[:error_message] = "Too many login attempts. Please try again later."
             redirect "/login"
         end
 
-        # Retrieve the user info for the username from the database
-        user = User.get_user_info(username)
-    
-        # Ensure the user exists
-        if user.nil?
+        # Check if the user even exists
+        if !(User.get_user_info(username))
             session[:error_message] = "User is not found"
-
-            @@login_attempts[username][:attempts] += 1
-            @@login_attempts[username][:last_attempt] = Time.now
-
             redirect "/login"
-        end
-    
-        # Retrieve the hashed password from the database
-        stored_password_hash = user['password']
-    
-        # Compare the entered password with the hashed password from the database
-        if BCrypt::Password.new(stored_password_hash) == password
-            session[:user_id] = user['id'] 
+        end  
+
+        # Attempt to login
+        user_id, user_role = User.login(username, password)
+        if (user_id)
+
+            # If successful save the necessary information in the session variables
+            session[:user_id] = user_id
             session[:username] = username
-            session[:role] = user['role']
+            session[:role] = user_role
 
-            puts(session[:user_id])
-            puts(session[:username])
-            puts(session[:role])
-
-            @@login_attempts[username][:attempts] = 0
-            @@login_attempts[username][:last_attempt] = Time.now
-
+            # And then redirect back to the landing page
             redirect "/"
-
-        else 
+        else
+            # Print out on the screen that the password is incorrect and refresh the page
             session[:error_message] = "Password is incorrect"
-
-            @@login_attempts[username][:attempts] += 1
-            @@login_attempts[username][:last_attempt] = Time.now
-
             redirect '/login'        
         end
-
-        
     end
     
     # Register handling
@@ -312,7 +295,7 @@ class App < Sinatra::Base
         erb :register, locals: { error_message: error_message }
     end    
 
-     post '/register' do 
+    post '/register' do 
         # Retrieve the username and password from the form
         username = params["username"]
         password = params["password"]
@@ -325,29 +308,29 @@ class App < Sinatra::Base
             redirect '/register'
         end
 
-        # Hash the retrieved form password
-        password_hash = BCrypt::Password.create(password)
+        # Call the registration function
+        result = User.register(username, BCrypt::Password.create(password), role)
 
-        # Try to insert into the database
-        begin
-            user_id = User.insert(username, password_hash, role)
+        if result.is_a?(Integer)
+            puts(result.to_s)
+            # Registration was successful
+            session[:user_id] = result
+            session[:username] = username
+            session[:role] = role
 
-        rescue SQLite3::ConstraintException => e
-            session[:error_message] = "Username is already taken"
-            redirect '/register'
+            redirect "/"
+        else
+            puts(result.to_s)
+            # Registration failed, handle error message
+            if result.is_a?(SQLite3::ConstraintException)
+                session[:error_message] = "Username is already taken"
+            else
+                session[:error_message] = "There was an error processing your request."
+            end
 
-        rescue => e
-            puts(e.to_s)
-            session[:error_message] = "An error occurred while processing your request"
-            redirect '/register'
+            # Redirect to registration page
+            redirect "/register"  
         end
-    
-        session[:user_id] = user_id 
-        session[:username] = username
-        session[:role] = role
-
-        redirect "/"
-        
     end
 
     # Handle the logout request
@@ -357,9 +340,4 @@ class App < Sinatra::Base
             redirect '/'
         end
     end
-
-
-    
-
-
 end
