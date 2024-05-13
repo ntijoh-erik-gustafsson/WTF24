@@ -44,7 +44,7 @@ class App < Sinatra::Base
             @genres = Releases.get_genres
 
             # Redirect to the erb file for adding a release
-            erb :release_add
+            erb :'release/release_add'
             
         else
             # Otherwise redirect back to the index page
@@ -79,7 +79,7 @@ class App < Sinatra::Base
         @artists = Artists.all
         @genres = Releases.get_genres()
 
-        erb :release_edit
+        erb :'release/release_edit'
     end
 
     post '/release/edit/:id' do |id|
@@ -100,7 +100,7 @@ class App < Sinatra::Base
         # Handle the error message for reviews
         error_message = session.delete(:error_message)
       
-        erb :release_view, locals: { error_message: error_message }
+        erb :'release/release_view', locals: { error_message: error_message }
       end
       
     # --- REVIEW A RELEASE ---
@@ -148,7 +148,7 @@ class App < Sinatra::Base
     # -- ARTIST --
     # --- ADD AN ARTIST ---
     get '/artist/add' do
-        erb :artist_add
+        erb :'artist/artist_add'
     end
 
     post '/artist/add' do
@@ -175,7 +175,7 @@ class App < Sinatra::Base
      # --- EDIT AN ARTIST ---
     get '/artist/edit/:id' do |id|
         @artist_info = Artists.find(id)
-        erb :artist_edit
+        erb :'artist/artist_edit'    
     end
 
     post '/artist/edit/:id' do |id|
@@ -188,7 +188,7 @@ class App < Sinatra::Base
         @artist_info = Artists.find(id)
         @releases = Releases.find(id)
 
-        erb :artist_view
+        erb :'artist/artist_view'
     end
 
     # --- APPROVE AN ARTIST ---
@@ -250,7 +250,7 @@ class App < Sinatra::Base
         error_message = session.delete(:error_message)
 
         # Redirect
-        erb :login, locals: { error_message: error_message }
+        erb :'user/login', locals: { error_message: error_message }
     end
 
     post '/login' do 
@@ -292,7 +292,7 @@ class App < Sinatra::Base
     get '/register' do 
         error_message = session.delete(:error_message)
 
-        erb :register, locals: { error_message: error_message }
+        erb :'user/register', locals: { error_message: error_message }
     end    
 
     post '/register' do 
