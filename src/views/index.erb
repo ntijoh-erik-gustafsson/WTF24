@@ -14,7 +14,7 @@
                     <p> <%= index.to_s + ". " %><%= html_escape(Artists.get_artist_name_from_artist_id(release["artist_id"])) %> - <%= html_escape(release["title"]) %></p>
 
                     <form action='/release/view/<%= release["id"] %>' method='get'> 
-                        <button type="submit">VIEW</button>
+                        <button id="btn_view_release" type="submit">VIEW</button>
                     </form>
 
                     <% if session[:role] == 'admin' %>
